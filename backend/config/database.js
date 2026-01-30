@@ -454,6 +454,61 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Add address location columns to users table (migration)
+    try {
+      const dbName = dbConfig.database;
+
+      const [[{ count_lat }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_lat FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'address_lat'`,
+        [dbName]
+      );
+      if (Number(count_lat) === 0) {
+        await promisePool.query(
+          `ALTER TABLE users ADD COLUMN address_lat DECIMAL(10, 8) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added address_lat column to users', {});
+      }
+
+      const [[{ count_lon }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_lon FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'address_lon'`,
+        [dbName]
+      );
+      if (Number(count_lon) === 0) {
+        await promisePool.query(
+          `ALTER TABLE users ADD COLUMN address_lon DECIMAL(11, 8) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added address_lon column to users', {});
+      }
+
+      const [[{ count_country }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_country FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'country'`,
+        [dbName]
+      );
+      if (Number(count_country) === 0) {
+        await promisePool.query(
+          `ALTER TABLE users ADD COLUMN country VARCHAR(100) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added country column to users', {});
+      }
+
+      const [[{ count_tz }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_tz FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'timezone'`,
+        [dbName]
+      );
+      if (Number(count_tz) === 0) {
+        await promisePool.query(
+          `ALTER TABLE users ADD COLUMN timezone VARCHAR(100) DEFAULT 'Pacific/Auckland'`
+        );
+        dbLog.info('initializeDatabase', 'Added timezone column to users', {});
+      }
+    } catch (addressError) {
+      logger.dbError('initializeDatabase', addressError, null, { migration: 'users_address_fields' });
+    }
+
     // Create companion_applications table
     await promisePool.query(`
       CREATE TABLE IF NOT EXISTS companion_applications (
@@ -656,6 +711,31 @@ const initializeDatabase = async () => {
         dbLog.info('initializeDatabase', 'Added reviewed_at column to client_verifications', {});
       }
 
+      // Add address_lat and address_lon columns
+      const [[{ count_lat }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_lat FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'client_verifications' AND COLUMN_NAME = 'address_lat'`,
+        [dbName]
+      );
+      if (Number(count_lat) === 0) {
+        await promisePool.query(
+          `ALTER TABLE client_verifications ADD COLUMN address_lat DECIMAL(10, 8) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added address_lat column to client_verifications', {});
+      }
+
+      const [[{ count_lon }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_lon FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'client_verifications' AND COLUMN_NAME = 'address_lon'`,
+        [dbName]
+      );
+      if (Number(count_lon) === 0) {
+        await promisePool.query(
+          `ALTER TABLE client_verifications ADD COLUMN address_lon DECIMAL(11, 8) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added address_lon column to client_verifications', {});
+      }
+
     } catch (migrationError) {
       logger.dbError('initializeDatabase', migrationError, null, { migration: 'client_verifications_table' });
     }
@@ -696,6 +776,36 @@ const initializeDatabase = async () => {
       }
     } catch (migrationError) {
       logger.dbError('initializeDatabase', migrationError, null, { migration: 'companion_availability_services' });
+    }
+
+    // Add companion_timezone and is_utc columns to companion_availability table (migration)
+    try {
+      const dbName = dbConfig.database;
+      const [[{ count_tz }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_tz FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'companion_availability' AND COLUMN_NAME = 'companion_timezone'`,
+        [dbName]
+      );
+      if (Number(count_tz) === 0) {
+        await promisePool.query(
+          `ALTER TABLE companion_availability ADD COLUMN companion_timezone VARCHAR(100) DEFAULT 'UTC'`
+        );
+        dbLog.info('initializeDatabase', 'Added companion_timezone column to companion_availability table', {});
+      }
+
+      const [[{ count_utc }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_utc FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'companion_availability' AND COLUMN_NAME = 'is_utc'`,
+        [dbName]
+      );
+      if (Number(count_utc) === 0) {
+        await promisePool.query(
+          `ALTER TABLE companion_availability ADD COLUMN is_utc TINYINT(1) DEFAULT 1`
+        );
+        dbLog.info('initializeDatabase', 'Added is_utc column to companion_availability table', {});
+      }
+    } catch (migrationError) {
+      logger.dbError('initializeDatabase', migrationError, null, { migration: 'companion_availability_timezone' });
     }
 
     // Create service_categories table
@@ -1570,6 +1680,37 @@ const initializeDatabase = async () => {
       }
     } catch (migrationError) {
       logger.dbError('initializeDatabase', migrationError, null, { migration: 'companion_applications_stripe_fields' });
+    }
+
+    // Add address location columns to companion_applications table (migration)
+    try {
+      const dbName = dbConfig.database;
+
+      const [[{ count_lat }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_lat FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'companion_applications' AND COLUMN_NAME = 'address_lat'`,
+        [dbName]
+      );
+      if (Number(count_lat) === 0) {
+        await promisePool.query(
+          `ALTER TABLE companion_applications ADD COLUMN address_lat DECIMAL(10, 8) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added address_lat column to companion_applications', {});
+      }
+
+      const [[{ count_lon }]] = await promisePool.query(
+        `SELECT COUNT(*) AS count_lon FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'companion_applications' AND COLUMN_NAME = 'address_lon'`,
+        [dbName]
+      );
+      if (Number(count_lon) === 0) {
+        await promisePool.query(
+          `ALTER TABLE companion_applications ADD COLUMN address_lon DECIMAL(11, 8) NULL`
+        );
+        dbLog.info('initializeDatabase', 'Added address_lon column to companion_applications', {});
+      }
+    } catch (migrationError) {
+      logger.dbError('initializeDatabase', migrationError, null, { migration: 'companion_applications_address_fields' });
     }
 
     // Add Stripe transfer-related columns to bookings table (migration)
