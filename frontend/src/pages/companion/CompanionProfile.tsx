@@ -751,12 +751,9 @@ const CompanionProfile = () => {
       // Check if auto-approved (when USE_VERIFF_API=false)
       if (autoApproved) {
         console.log('✅ Auto-approved (testing mode)');
-        
+
         // Update local state
         setProfileData(prev => ({ ...prev, verificationStatus: 'approved' }));
-        
-        // Show success message
-        toast.success('Identity verified');
         
         // Reload profile data to get latest status
         try {
@@ -803,10 +800,12 @@ const CompanionProfile = () => {
           });
           
           console.log('✅ Profile data updated successfully (auto-approved)');
-          
-          // Show additional success message if application was also approved
+
+          // Show single success message
           if (applicationStatus === 'approved') {
-            toast.success('Application approved');
+            toast.success('Identity verified & application approved!');
+          } else {
+            toast.success('Identity verified successfully!');
           }
           
         } catch (reloadError) {
