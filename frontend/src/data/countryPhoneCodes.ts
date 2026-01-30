@@ -10,6 +10,7 @@ export interface CountryPhoneCode {
   flag: string;        // Country flag emoji
   format?: string;     // Phone number format placeholder
   maxLength?: number;  // Maximum phone number length (without country code)
+  minLength?: number;  // Minimum phone number length (without country code)
 }
 
 export const countryPhoneCodes: CountryPhoneCode[] = [
@@ -91,7 +92,7 @@ export const countryPhoneCodes: CountryPhoneCode[] = [
   { code: 'HK', name: 'Hong Kong', dialCode: '+852', flag: '🇭🇰', maxLength: 8 },
   { code: 'HU', name: 'Hungary', dialCode: '+36', flag: '🇭🇺', maxLength: 9 },
   { code: 'IS', name: 'Iceland', dialCode: '+354', flag: '🇮🇸', maxLength: 7 },
-  { code: 'IN', name: 'India', dialCode: '+91', flag: '🇮🇳', maxLength: 10, format: 'XXXXX XXXXX' },
+  { code: 'IN', name: 'India', dialCode: '+91', flag: '🇮🇳', maxLength: 10, minLength: 10, format: 'XXXXX XXXXX' },
   { code: 'ID', name: 'Indonesia', dialCode: '+62', flag: '🇮🇩', maxLength: 11 },
   { code: 'IR', name: 'Iran', dialCode: '+98', flag: '🇮🇷', maxLength: 10 },
   { code: 'IQ', name: 'Iraq', dialCode: '+964', flag: '🇮🇶', maxLength: 10 },
@@ -201,7 +202,7 @@ export const countryPhoneCodes: CountryPhoneCode[] = [
   { code: 'UA', name: 'Ukraine', dialCode: '+380', flag: '🇺🇦', maxLength: 9 },
   { code: 'AE', name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪', maxLength: 9 },
   { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧', maxLength: 10, format: 'XXXX XXXXXX' },
-  { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸', maxLength: 10, format: '(XXX) XXX-XXXX' },
+  { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸', maxLength: 10, minLength: 10, format: '(XXX) XXX-XXXX' },
   { code: 'UY', name: 'Uruguay', dialCode: '+598', flag: '🇺🇾', maxLength: 8 },
   { code: 'UZ', name: 'Uzbekistan', dialCode: '+998', flag: '🇺🇿', maxLength: 9 },
   { code: 'VU', name: 'Vanuatu', dialCode: '+678', flag: '🇻🇺', maxLength: 7 },
@@ -262,8 +263,18 @@ export const validatePhoneNumber = (phoneNumber: string, countryCode: string): b
 
   const digits = phoneNumber.replace(/\D/g, '');
   const maxLength = country.maxLength || 15; // Default max length
+  const minLength = country.minLength || Math.max(6, maxLength - 3); // Use country minLength or derive from maxLength
 
-  return digits.length <= maxLength && digits.length >= 5; // Minimum 5 digits
+  return digits.length <= maxLength && digits.length >= minLength;
+};
+
+/**
+ * Get minimum phone length for a country
+ */
+export const getMinPhoneLength = (countryCode: string): number => {
+  const country = getCountryByCode(countryCode);
+  if (!country) return 6;
+  return country.minLength || Math.max(6, (country.maxLength || 10) - 3);
 };
 
 /**

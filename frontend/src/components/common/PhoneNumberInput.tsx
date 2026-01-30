@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { countryPhoneCodes, getDefaultCountry, validatePhoneNumber, getFullPhoneNumber, type CountryPhoneCode } from '../../data/countryPhoneCodes';
+import { countryPhoneCodes, getDefaultCountry, validatePhoneNumber, getFullPhoneNumber, getMinPhoneLength, type CountryPhoneCode } from '../../data/countryPhoneCodes';
 
 interface PhoneNumberInputProps {
   value: string;
@@ -115,6 +115,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   const isValid = phoneNumber && validatePhoneNumber(phoneNumber, selectedCountry.code);
   const digitCount = phoneNumber.replace(/\D/g, '').length;
   const maxLength = selectedCountry.maxLength || 15;
+  const minLength = getMinPhoneLength(selectedCountry.code);
 
   return (
     <div className={className}>
@@ -221,8 +222,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       {/* Helper Text */}
       {phoneNumber && !isValid && (
         <p className="mt-1 text-sm text-amber-600">
-          {digitCount < 5
-            ? `Phone number too short (${digitCount} digits). Minimum 5 digits required.`
+          {digitCount < minLength
+            ? `Phone number too short (${digitCount} digits). ${selectedCountry.name} numbers need ${minLength} digits.`
             : digitCount > maxLength
             ? `Phone number too long (${digitCount} digits). ${selectedCountry.name} numbers have max ${maxLength} digits.`
             : `Please enter a valid phone number for ${selectedCountry.name}`
