@@ -781,8 +781,10 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
       const paymentResult = await stripeService.authorizePayment(
         bookingId,
         totalAmount,
-        `Booking with ${companionData[0].name || 'companion'} on ${bookingDate}`,
-        clientInfo[0].email
+        clientInfo[0].email,
+        {
+          description: `Booking with ${companionData[0].name || 'companion'} on ${bookingDate}`
+        }
       );
 
       // Update booking with payment_intent_id
