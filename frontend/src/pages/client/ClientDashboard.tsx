@@ -107,7 +107,9 @@ const ClientDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<BookingRequest | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [userTimezone, setUserTimezone] = useState<string>('UTC');
+  const [userTimezone, setUserTimezone] = useState<string>(() =>
+    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  );
   const [showChatBox, setShowChatBox] = useState(false);
   const [chatBooking, setChatBooking] = useState<Booking | null>(null);
   const [isResendingEmail, setIsResendingEmail] = useState(false);

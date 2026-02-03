@@ -189,7 +189,9 @@ const CompanionDashboard = () => {
   const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
   const [isLoadingPending, setIsLoadingPending] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false); // Default false = show banner
-  const [userTimezone, setUserTimezone] = useState<string>('UTC');
+  const [userTimezone, setUserTimezone] = useState<string>(() =>
+    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  );
   
   // ✅ FIX: Separate state for OTP verification - fetch ALL confirmed bookings, not just recent 10
   const [otpBookings, setOtpBookings] = useState<Booking[]>([]);

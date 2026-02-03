@@ -46,7 +46,9 @@ const ClientBookings = () => {
   const [showChatBox, setShowChatBox] = useState(false);
   const [chatBooking, setChatBooking] = useState<Booking | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [userTimezone, setUserTimezone] = useState<string>('UTC');
+  const [userTimezone, setUserTimezone] = useState<string>(() =>
+    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  );
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   // Note: Review state removed - reviews only via dashboard banner
 
