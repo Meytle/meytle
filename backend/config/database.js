@@ -2099,6 +2099,39 @@ const initializeDatabase = async () => {
       logger.dbError('initializeDatabase', migrationError, null, { migration: 'booking_requests_time_columns' });
     }
 
+    // Add timezone columns to booking_requests table
+    try {
+      const dbName = dbConfig.database;
+
+      const [[{ client_tz_exists }]] = await promisePool.query(
+        `SELECT COUNT(*) as client_tz_exists FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'booking_requests' AND COLUMN_NAME = 'client_timezone'`,
+        [dbName]
+      );
+
+      if (client_tz_exists === 0) {
+        await promisePool.query(
+          `ALTER TABLE booking_requests ADD COLUMN client_timezone VARCHAR(100) NULL AFTER end_time`
+        );
+        dbLog.info('initializeDatabase', 'Added client_timezone column to booking_requests table', {});
+      }
+
+      const [[{ companion_tz_exists }]] = await promisePool.query(
+        `SELECT COUNT(*) as companion_tz_exists FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'booking_requests' AND COLUMN_NAME = 'companion_timezone'`,
+        [dbName]
+      );
+
+      if (companion_tz_exists === 0) {
+        await promisePool.query(
+          `ALTER TABLE booking_requests ADD COLUMN companion_timezone VARCHAR(100) NULL AFTER client_timezone`
+        );
+        dbLog.info('initializeDatabase', 'Added companion_timezone column to booking_requests table', {});
+      }
+    } catch (migrationError) {
+      logger.dbError('initializeDatabase', migrationError, null, { migration: 'booking_requests_timezone_columns' });
+    }
+
     // Add custom service fields to bookings table for client-specified services
     try {
       // Add custom_service_name column
@@ -2162,6 +2195,58 @@ const initializeDatabase = async () => {
       }
     } catch (migrationError) {
       logger.dbError('initializeDatabase', migrationError, null, { migration: 'bookings_custom_service_fields' });
+    }
+
+    // Add booking_timezone column to bookings table
+    try {
+      const [[{ booking_timezone_exists }]] = await promisePool.query(
+        `SELECT COUNT(*) as booking_timezone_exists FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'bookings'
+         AND COLUMN_NAME = 'booking_timezone'`
+      );
+
+      if (booking_timezone_exists === 0) {
+        await promisePool.query(
+          `ALTER TABLE bookings ADD COLUMN booking_timezone VARCHAR(100) DEFAULT 'UTC'`
+        );
+        dbLog.info('initializeDatabase', 'Added booking_timezone column to bookings', {});
+      }
+    } catch (migrationError) {
+      logger.dbError('initializeDatabase', migrationError, null, { migration: 'bookings_timezone' });
+    }
+
+    // Add client_timezone and companion_timezone_stored columns to bookings table
+    try {
+      const [[{ client_tz_exists }]] = await promisePool.query(
+        `SELECT COUNT(*) as client_tz_exists FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'bookings'
+         AND COLUMN_NAME = 'client_timezone'`
+      );
+
+      if (client_tz_exists === 0) {
+        await promisePool.query(
+          `ALTER TABLE bookings ADD COLUMN client_timezone VARCHAR(100) DEFAULT NULL AFTER booking_timezone`
+        );
+        dbLog.info('initializeDatabase', 'Added client_timezone column to bookings', {});
+      }
+
+      const [[{ companion_tz_exists }]] = await promisePool.query(
+        `SELECT COUNT(*) as companion_tz_exists FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'bookings'
+         AND COLUMN_NAME = 'companion_timezone_stored'`
+      );
+
+      if (companion_tz_exists === 0) {
+        await promisePool.query(
+          `ALTER TABLE bookings ADD COLUMN companion_timezone_stored VARCHAR(100) DEFAULT NULL AFTER client_timezone`
+        );
+        dbLog.info('initializeDatabase', 'Added companion_timezone_stored column to bookings', {});
+      }
+    } catch (migrationError) {
+      logger.dbError('initializeDatabase', migrationError, null, { migration: 'bookings_client_companion_timezone' });
     }
 
     // Create booking_reviews table
