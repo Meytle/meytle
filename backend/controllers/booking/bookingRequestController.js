@@ -840,7 +840,7 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
 
       // Send notification to client about payment requirement
       const notificationData = {
-        type: 'booking_payment_required',
+        type: 'booking',
         title: 'Complete Payment for Your Booking',
         message: `Your booking request was accepted! Please complete payment to confirm your booking for ${bookingDate} at ${startTime}.`,
         actionUrl: `/client/bookings/${bookingId}`
