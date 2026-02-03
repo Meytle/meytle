@@ -27,6 +27,7 @@ import AddressSearch from "../common/AddressSearch";
 import AutoResizeTextarea from "../common/AutoResizeTextarea";
 import PaymentConfirmationModal from "../payment/PaymentConfirmationModal";
 import { useModalRegistration } from "../../context/ModalContext";
+import { convertToUTC } from "../../utils/timeConverter";
 import type { ServiceCategory } from "../../types";
 import type { ValidatedAddress } from "../../services/addressValidation";
 
@@ -323,17 +324,22 @@ const CustomBookingRequestModal: React.FC<CustomBookingRequestModalProps> = ({
       };
 
       console.log("Sending request data:", requestData);
-      
+
       // Detect client's timezone
       const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
       console.log("Client timezone detected:", clientTimezone);
-      
+
+      // Convert local times to UTC for storage
+      const startTimeUTC = convertToUTC(requestData.startTime, requestData.requestedDate, clientTimezone);
+      const endTimeUTC = convertToUTC(requestData.endTime, requestData.requestedDate, clientTimezone);
+      console.log("Times converted to UTC:", { startTimeUTC, endTimeUTC, original: { start: requestData.startTime, end: requestData.endTime } });
+
       // ⭐ NEW FLOW: Create payment intent first (no request in DB yet!)
       const response = await bookingApi.createRequestPaymentIntent({
         companionId: companionId,
         requestedDate: requestData.requestedDate,
-        startTime: requestData.startTime,
-        endTime: requestData.endTime,
+        startTime: startTimeUTC,
+        endTime: endTimeUTC,
         durationHours: requestData.durationHours || 1,
         serviceType: requestData.serviceType,
         extraAmount: requestData.extraAmount,
@@ -343,9 +349,16 @@ const CustomBookingRequestModal: React.FC<CustomBookingRequestModalProps> = ({
 
       // ⭐ Show payment modal with payment intent details
       if (response.clientSecret) {
+        // Store request data with UTC times for later submission
+        const requestDataWithUTC = {
+          ...requestData,
+          startTime: startTimeUTC,
+          endTime: endTimeUTC,
+          clientTimezone: clientTimezone
+        };
         setPaymentData({
           paymentIntentId: response.paymentIntentId,
-          requestData, // Store request data for later
+          requestData: requestDataWithUTC, // Store request data with UTC times
           clientSecret: response.clientSecret,
           totalAmount: response.totalAmount,
           requestedDate: requestData.requestedDate,
