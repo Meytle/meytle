@@ -112,6 +112,7 @@ const ClientDashboard = () => {
   const [chatBooking, setChatBooking] = useState<Booking | null>(null);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [isProfileCheckDone, setIsProfileCheckDone] = useState(false); // Prevents banner flash on load
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Used to trigger data refresh from socket events
   const navigate = useNavigate();
   const openChatProcessedRef = useRef<number | null>(null); // Track which booking ID was already opened via URL
@@ -269,12 +270,14 @@ const ClientDashboard = () => {
       
       const profileComplete = hasAddress && hasProfilePic && isIdVerified;
       setIsProfileComplete(!!profileComplete);
-      
+      setIsProfileCheckDone(true);
+
       console.log('✅ Dashboard: Profile complete:', profileComplete);
     } catch (error) {
       console.error('Error checking profile completion:', error);
       // If error, assume profile is not complete
       setIsProfileComplete(false);
+      setIsProfileCheckDone(true);
     }
   };
 
@@ -717,8 +720,8 @@ const ClientDashboard = () => {
           </div>
         )}
 
-        {/* Profile Completion Banner */}
-        {!!user && !isProfileComplete && (
+        {/* Profile Completion Banner - only show after check is done to prevent flash */}
+        {!!user && isProfileCheckDone && !isProfileComplete && (
           <div className="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
             <div className="flex items-start">
               <FaExclamationTriangle className="text-blue-400 text-xl mt-0.5 mr-3 flex-shrink-0" />
