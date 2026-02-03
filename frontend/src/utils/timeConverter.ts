@@ -16,15 +16,23 @@ export function convertFromUTC(
   userTimezone: string = 'UTC'
 ): string {
   try {
-    if (!utcTime || !date) return utcTime;
-    
+    if (!utcTime || !date) {
+      console.log('🕐 convertFromUTC: Missing utcTime or date', { utcTime, date });
+      return utcTime;
+    }
+
     // If timezone is UTC, return as-is
-    if (userTimezone === 'UTC') return utcTime;
+    if (userTimezone === 'UTC') {
+      console.log('🕐 convertFromUTC: Timezone is UTC, returning as-is', { utcTime });
+      return utcTime;
+    }
 
     // Create UTC date
     const utcDateTimeStr = `${date}T${utcTime}Z`; // Z indicates UTC
     const utcDate = new Date(utcDateTimeStr);
-    
+
+    console.log('🕐 convertFromUTC: Created UTC date', { utcDateTimeStr, utcDate: utcDate.toISOString() });
+
     // Convert to user's timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: userTimezone,
@@ -33,13 +41,16 @@ export function convertFromUTC(
       second: '2-digit',
       hour12: false
     });
-    
+
     const parts = formatter.formatToParts(utcDate);
     const hour = parts.find(p => p.type === 'hour')?.value || '00';
     const minute = parts.find(p => p.type === 'minute')?.value || '00';
     const second = parts.find(p => p.type === 'second')?.value || '00';
-    
-    return `${hour}:${minute}:${second}`;
+
+    const result = `${hour}:${minute}:${second}`;
+    console.log('🕐 convertFromUTC: Result', { input: utcTime, output: result, userTimezone });
+
+    return result;
   } catch (error) {
     console.error('Error converting time from UTC:', error);
     return utcTime; // Return original on error
@@ -218,18 +229,24 @@ export function formatTimeRange(
 ): string {
   try {
     if (!startTime || !endTime) return '';
-    
+
+    console.log('🕐 formatTimeRange input:', { startTime, endTime, date, userTimezone });
+
     // Convert UTC times to user's local timezone
     const localStartTime = convertFromUTC(startTime, date, userTimezone);
     const localEndTime = convertFromUTC(endTime, date, userTimezone);
-    
+
+    console.log('🕐 After UTC conversion:', { localStartTime, localEndTime });
+
     // Format in 12-hour format
     const formattedStart = formatTime12Hour(localStartTime);
     const formattedEnd = formatTime12Hour(localEndTime);
-    
+
     // Get timezone abbreviation
     const tzAbbr = getTimezoneAbbreviation(userTimezone);
-    
+
+    console.log('🕐 formatTimeRange output:', `${formattedStart} - ${formattedEnd} ${tzAbbr}`);
+
     return `${formattedStart} - ${formattedEnd} ${tzAbbr}`;
   } catch (error) {
     console.error('Error formatting time range:', error);
