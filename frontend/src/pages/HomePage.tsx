@@ -3,68 +3,30 @@
  * Optimized for performance with memoization and reduced animations
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   FaShieldAlt,
   FaCoffee, FaUtensils, FaFilm, FaShoppingBag,
   FaTheaterMasks, FaMusic, FaMapMarkedAlt, FaMountain,
-  FaArrowDown, FaArrowRight,
-  FaUserPlus, FaSearch, FaCalendarCheck
+  FaArrowRight,
+  FaUserPlus, FaSearch, FaCalendarCheck,
+  FaIdCard, FaLock, FaMapMarkerAlt, FaHandshake,
+  FaChevronDown
 } from 'react-icons/fa';
 import { ROUTES } from '../constants';
 import { useAuth } from '../hooks/useAuth';
 import FloatingProfileImages from '../components/common/FloatingProfileImages';
 
-const HomePage = React.memo(() => {
+const HomePage = memo(() => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [isWordFading, setIsWordFading] = useState(false);
 
-  // Rotating words for headline - Option B: Trust → Connection → Action
-  const rotatingWords = useMemo(() => [
-    'Verified',
-    'Genuine',
-    'Like-Minded',
-    'Local',
-    'Amazing'
-  ], []);
-
-  // Fade in animation on mount and device detection
+  // Fade in animation on mount
   useEffect(() => {
     setIsVisible(true);
-    setIsMobile(window.innerWidth < 768);
-
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
   }, []);
-
-  // Rotating word animation with smooth fade transition
-  useEffect(() => {
-    const wordRotationInterval = setInterval(() => {
-      // Start fade out
-      setIsWordFading(true);
-      
-      // After fade out completes, change word and fade in
-      setTimeout(() => {
-        setCurrentWordIndex(prev => (prev + 1) % rotatingWords.length);
-        setIsWordFading(false);
-      }, 400); // Half of the 800ms total transition
-      
-    }, 3000); // Change word every 3 seconds
-
-    return () => clearInterval(wordRotationInterval);
-  }, [rotatingWords.length]);
 
   // Memoized arrays to prevent re-creation on every render
 
@@ -173,28 +135,13 @@ const HomePage = React.memo(() => {
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-12 md:py-16 text-center">
-          {/* Main Headline with Rotating Word - STABLE LAYOUT */}
+          {/* Main Headline */}
           <div className={`mb-6 sm:mb-8 transition-all duration-1000 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 flex flex-col items-center gap-3 sm:gap-4 md:gap-5">
-              {/* Fixed "Hire" */}
-              <span className="text-gray-900">Hire</span>
-              
-              {/* Rotating Word - LARGER & GRADIENT with proper spacing */}
-              <div className="relative w-full flex items-center justify-center overflow-visible min-h-[70px] sm:min-h-[80px] md:min-h-[90px] lg:min-h-[100px]">
-                <span 
-                  className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold bg-gradient-to-r from-[#1e4e8f] via-[#2563eb] to-[#1e3a8a] bg-clip-text text-transparent transition-all duration-500 whitespace-nowrap px-4 ${isWordFading ? 'opacity-0 scale-90 blur-sm' : 'opacity-100 scale-100 blur-0'}`}
-                  style={{
-                    textShadow: '0 0 40px rgba(49, 46, 129, 0.3)',
-                    WebkitTextStroke: '1px rgba(49, 46, 129, 0.1)',
-                    lineHeight: '1.2'
-                  }}
-                >
-                  {rotatingWords[currentWordIndex]}
-                </span>
-              </div>
-              
-              {/* Fixed "People" */}
-              <span className="text-gray-900">People</span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900">
+              Find Your Perfect{' '}
+              <span className="bg-gradient-to-r from-[#1e4e8f] via-[#2563eb] to-[#1e3a8a] bg-clip-text text-transparent">
+                Companion
+              </span>
             </h1>
           </div>
 
@@ -207,11 +154,11 @@ const HomePage = React.memo(() => {
 
           {/* CTA Button */}
           <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-            <Link 
-              to="/browse-companions"
+            <Link
+              to="/signin"
               className="group inline-flex items-center gap-3 px-8 py-4 sm:px-10 sm:py-5 bg-gradient-to-r from-[#1e4e8f] to-[#2563eb] text-white text-base sm:text-lg md:text-xl font-bold rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transform transition-all duration-300 hover:from-[#1e3a8a] hover:to-[#1e4e8f]"
             >
-              <span>Browse Profiles</span>
+              <span>Find Companions Near You</span>
               <FaArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -363,9 +310,128 @@ const HomePage = React.memo(() => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
+      {/* SECTION 4: TRUST & SAFETY */}
+      <section id="safety" className="py-12 sm:py-16 md:py-20 bg-white/50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-10 sm:mb-14 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Your Safety, <span className="bg-gradient-to-r from-[#1e4e8f] to-[#1e3a8a] bg-clip-text text-transparent">Our Priority</span>
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+              Every meeting is protected by multiple layers of verification
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#1e4e8f]/10 to-[#2563eb]/10 rounded-xl flex items-center justify-center mb-4">
+                <FaIdCard className="w-7 h-7 text-[#1e4e8f]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">ID Verified</h3>
+              <p className="text-sm text-gray-600">All users verify their identity with government ID and selfie before booking.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#1e4e8f]/10 to-[#2563eb]/10 rounded-xl flex items-center justify-center mb-4">
+                <FaLock className="w-7 h-7 text-[#1e4e8f]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Payment Protected</h3>
+              <p className="text-sm text-gray-600">Funds are held securely until both parties verify the meeting took place.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#1e4e8f]/10 to-[#2563eb]/10 rounded-xl flex items-center justify-center mb-4">
+                <FaMapMarkerAlt className="w-7 h-7 text-[#1e4e8f]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">GPS Verified</h3>
+              <p className="text-sm text-gray-600">OTP codes + location check ensures both parties are at the meeting spot.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#1e4e8f]/10 to-[#2563eb]/10 rounded-xl flex items-center justify-center mb-4">
+                <FaHandshake className="w-7 h-7 text-[#1e4e8f]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Money-Back Guarantee</h3>
+              <p className="text-sm text-gray-600">Full refund if meeting doesn't happen. No verification = no charge.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 5: FAQ */}
+      <section id="faq" className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Common Questions
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-600">
+              Everything you need to know before getting started
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <details className="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="text-lg font-semibold text-gray-900">Is it safe to meet companions through Meytle?</h3>
+                <FaChevronDown className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-gray-600">
+                <p>Yes! Safety is our top priority. All users must verify their identity with a government ID and selfie. Payments are held securely until both parties verify the meeting with OTP codes and GPS location check. If the meeting doesn't happen, you get a full refund automatically.</p>
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="text-lg font-semibold text-gray-900">How do payments work?</h3>
+                <FaChevronDown className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-gray-600">
+                <p>When you book, your payment is authorized but not charged. The money is only captured after both you and the companion verify the meeting using OTP codes sent to your email. Companions receive their payment after successful verification. If the meeting doesn't happen, you're never charged.</p>
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="text-lg font-semibold text-gray-900">What if the companion cancels?</h3>
+                <FaChevronDown className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-gray-600">
+                <p>If a companion cancels before the meeting, you receive a full refund automatically. Our cancellation policy locks bookings 3 hours before the meeting time to prevent last-minute cancellations. Companions who cancel frequently may be removed from the platform.</p>
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="text-lg font-semibold text-gray-900">How do I become a companion?</h3>
+                <FaChevronDown className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-gray-600">
+                <p>Sign up and select "Become a Companion". Complete your profile with photos and a bio, set your hourly rate and availability, then verify your identity. Once approved, you'll appear in search results and can start accepting bookings. Companions keep 85% of each booking.</p>
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="text-lg font-semibold text-gray-900">What happens at the meeting?</h3>
+                <FaChevronDown className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-gray-600">
+                <p>Before the meeting, both parties receive OTP codes via email. At the meeting location, you and your companion exchange OTP codes to verify presence. The system also checks GPS location. Once verified, payment is processed and you can enjoy your activity together!</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 6: FINAL CTA */}
+      <section className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4">
           {/* Final CTA - More Elegant */}
-          <div className="mt-12 sm:mt-16 md:mt-24 text-center">
+          <div className="text-center">
             <div className="max-w-3xl mx-auto bg-gradient-to-br from-[#1e4e8f] to-[#2563eb] rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden">
               {/* Background Decoration */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
@@ -381,7 +447,7 @@ const HomePage = React.memo(() => {
                     onClick={handleGetStarted}
                     className="w-full sm:w-auto min-h-[44px] px-8 sm:px-10 py-3 sm:py-4 bg-white text-[#1e4e8f] font-bold text-base sm:text-lg rounded-full hover:bg-gray-50 transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
-                    Start Earning
+                    Apply as Companion
                   </button>
                   <button
                     onClick={handleSignIn}

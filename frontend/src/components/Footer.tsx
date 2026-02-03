@@ -70,6 +70,16 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/#safety" className="text-gray-300 hover:text-[#FFCCCB] transition-all duration-300 text-sm hover:drop-shadow-[0_0_8px_rgba(255,204,203,0.4)]">
+                  Trust & Safety
+                </Link>
+              </li>
+              <li>
+                <Link to="/#faq" className="text-gray-300 hover:text-[#FFCCCB] transition-all duration-300 text-sm hover:drop-shadow-[0_0_8px_rgba(255,204,203,0.4)]">
+                  FAQ
+                </Link>
+              </li>
+              <li>
                 <Link to="/signup?role=companion" className="text-gray-300 hover:text-[#FFCCCB] transition-all duration-300 text-sm hover:drop-shadow-[0_0_8px_rgba(255,204,203,0.4)]">
                   Become a Companion
                 </Link>
@@ -102,6 +112,18 @@ const Footer = () => {
 
         {/* Bottom Section */}
         <div className="mt-12 pt-8 border-t border-[#1e4e8f]/30">
+          {/* Legal Links */}
+          <div className="flex flex-wrap justify-center gap-6 mb-6">
+            <Link to="/privacy" className="text-gray-400 hover:text-[#FFCCCB] transition-all duration-300 text-sm">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-gray-400 hover:text-[#FFCCCB] transition-all duration-300 text-sm">
+              Terms of Service
+            </Link>
+            <Link to="/refund-policy" className="text-gray-400 hover:text-[#FFCCCB] transition-all duration-300 text-sm">
+              Refund Policy
+            </Link>
+          </div>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
             <p className="text-gray-400 text-sm">
               © {currentYear} Meytle. All rights reserved.
