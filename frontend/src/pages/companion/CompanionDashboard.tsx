@@ -508,12 +508,15 @@ const CompanionDashboard = () => {
       
       // Handle new response format {bookings: [], userTimezone: ''}
       const bookingsData: Booking[] = Array.isArray(response) ? response : (response as any).bookings || [];
-      const timezone: string = Array.isArray(response) ? 'UTC' : ((response as any).userTimezone || 'UTC');
-      
-      setUserTimezone(timezone);
+
+      // Only update timezone if server provides a valid one, otherwise keep browser timezone
+      const serverTimezone = !Array.isArray(response) ? (response as any).userTimezone : null;
+      if (serverTimezone && serverTimezone !== 'UTC') {
+        setUserTimezone(serverTimezone);
+      }
       console.log('📥 fetchAllBookings: Received bookings data', {
         totalBookings: bookingsData.length,
-        timezone,
+        serverTimezone: serverTimezone || 'using browser timezone',
         bookings: bookingsData
       });
       
@@ -580,12 +583,15 @@ const CompanionDashboard = () => {
       
       // Handle new response format {pendingBookings: [], pendingCount: 0, userTimezone: ''}
       const pendingData: Booking[] = Array.isArray(response) ? response : (response as any).pendingBookings || [];
-      const timezone: string = Array.isArray(response) ? 'UTC' : ((response as any).userTimezone || 'UTC');
-      
-      setUserTimezone(timezone);
+
+      // Only update timezone if server provides a valid one, otherwise keep browser timezone
+      const serverTz = !Array.isArray(response) ? (response as any).userTimezone : null;
+      if (serverTz && serverTz !== 'UTC') {
+        setUserTimezone(serverTz);
+      }
       console.log('📥 fetchPendingBookings: Received pending bookings data', {
         pendingCount: pendingData.length,
-        timezone,
+        serverTimezone: serverTz || 'using browser timezone',
         pendingBookings: pendingData
       });
       setPendingBookings(pendingData);

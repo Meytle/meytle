@@ -124,12 +124,15 @@ const ClientBookings = () => {
       
       // Handle new response format {bookings: [], userTimezone: ''}
       const fetchedBookings = Array.isArray(response) ? response : response.bookings;
-      const timezone = Array.isArray(response) ? 'UTC' : (response.userTimezone || 'UTC');
-      
-      setUserTimezone(timezone);
-      logger.info('Client Bookings page: Fetched bookings', { 
+
+      // Only update timezone if server provides a valid one, otherwise keep browser timezone
+      const serverTimezone = !Array.isArray(response) ? response.userTimezone : null;
+      if (serverTimezone && serverTimezone !== 'UTC') {
+        setUserTimezone(serverTimezone);
+      }
+      logger.info('Client Bookings page: Fetched bookings', {
         count: fetchedBookings?.length || 0,
-        timezone 
+        serverTimezone: serverTimezone || 'using browser timezone'
       });
       
       // Check for bookings that need auto-completion

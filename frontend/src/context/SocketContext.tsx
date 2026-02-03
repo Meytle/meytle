@@ -236,11 +236,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setUnreadNotificationsCount(prev => prev + 1);
       }
 
-      // Show toast for new notification
-      toast.success(notification.title, {
-        duration: 4000,
-        icon: '🔔'
-      });
+      // Show toast for new notification ONLY if it's NOT a booking-related notification
+      // Booking notifications are handled by the dashboard via lastBookingEvent to avoid duplicates
+      if (notification.type !== 'booking') {
+        toast.success(notification.title, {
+          duration: 4000,
+          icon: '🔔'
+        });
+      }
     });
 
     // Listen for booking events (shared connection - dashboards watch lastBookingEvent)
