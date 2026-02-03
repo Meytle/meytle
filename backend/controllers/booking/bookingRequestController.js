@@ -62,8 +62,10 @@ const createRequestPaymentIntent = asyncHandler(async (req, res) => {
     clientTimezone,
     currentServerTime: new Date().toISOString()
   });
-  
-  if (clientTimezone && isPastTimeSlot(requestedDate, timeToCheck, 0, clientTimezone)) { // 0 minutes buffer - only reject if already passed
+
+  // Note: startTime from frontend is already in UTC, so don't pass clientTimezone
+  // (isPastTimeSlot would double-convert if we pass timezone)
+  if (isPastTimeSlot(requestedDate, timeToCheck, 0)) { // 0 minutes buffer - only reject if already passed
     logger.controllerWarn('bookingRequestController', 'createRequestPaymentIntent', 'Rejected: Time slot is in the past', {
       requestedDate,
       timeToCheck,
