@@ -240,26 +240,37 @@ const getConnectedUsersCount = () => {
 };
 
 /**
- * Emit booking update event to both client and companion
+ * Emit booking update event to both users
+ * @param {number} userId1 - First user ID to notify
+ * @param {number} userId2 - Second user ID to notify
+ * @param {string} event - Event name
+ * @param {object} data - Event data
  */
-const emitBookingUpdate = (clientId, companionId, event, data) => {
+const emitBookingUpdate = (userId1, userId2, event, data) => {
   if (global.io) {
-    // Emit to client
-    global.io.to(`user:${clientId}`).emit(event, {
+    const eventData = {
       ...data,
       timestamp: new Date()
-    });
+    };
 
-    // Emit to companion
-    global.io.to(`user:${companionId}`).emit(event, {
-      ...data,
-      timestamp: new Date()
-    });
+    // Emit to first user
+    global.io.to(`user:${userId1}`).emit(event, eventData);
 
-    logger.info('Booking update emitted via socket', {
+    // Emit to second user
+    global.io.to(`user:${userId2}`).emit(event, eventData);
+
+    // Log with actual user IDs for debugging
+    const user1Connected = isUserConnected(userId1);
+    const user2Connected = isUserConnected(userId2);
+
+    logger.info(`📡 Socket event emitted: ${event}`, {
       event,
-      clientId,
-      companionId,
+      userId1,
+      userId2,
+      user1Connected,
+      user2Connected,
+      rooms: [`user:${userId1}`, `user:${userId2}`],
+      requestId: data.requestId,
       bookingId: data.bookingId
     });
   }
