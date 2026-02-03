@@ -980,14 +980,14 @@ const CompanionDashboard = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleRequestAction(request.id, 'accepted')}
-                          className="flex-1 px-3 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          className="flex-1 px-3 py-2 bg-[#312E81] text-white font-medium rounded-lg hover:bg-[#252270] transition-colors"
                         >
                           <FaCheckCircle className="inline mr-1" />
                           Accept
                         </button>
                         <button
                           onClick={() => handleRequestAction(request.id, 'rejected')}
-                          className="flex-1 px-3 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                          className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           <FaTimesCircle className="inline mr-1" />
                           Decline
