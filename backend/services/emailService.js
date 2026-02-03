@@ -75,174 +75,134 @@ const getCombinedWelcomeVerificationTemplate = (userName, userRole, verification
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to Meytle - Verify Your Email</title>
+      <title>Verify your email - Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          color: #312E81;
-          margin-bottom: 10px;
-        }
-        .welcome-title {
-          color: #1f2937;
           font-size: 24px;
-          margin-bottom: 20px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 32px;
         }
         .content {
-          margin-bottom: 30px;
+          margin-bottom: 32px;
         }
-        .role-badge {
-          display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
-          color: white;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 600;
-          margin: 10px 0;
+        .content p {
+          margin: 0 0 16px 0;
         }
         .verify-button {
           display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
+          background: #1e3a8a;
           color: white;
-          padding: 15px 40px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 6px;
           font-weight: 600;
-          font-size: 16px;
-          margin: 25px 0;
+          font-size: 15px;
+          margin: 24px 0;
         }
-        .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
-        }
-        .highlight {
-          background: #fef3c7;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #f59e0b;
-          margin: 20px 0;
+        .verify-button:hover {
+          background: #1e4e8f;
         }
         .link-fallback {
           background: #f3f4f6;
-          padding: 15px;
-          border-radius: 8px;
-          margin: 20px 0;
+          padding: 12px;
+          border-radius: 6px;
+          margin: 16px 0;
           word-break: break-all;
           font-family: monospace;
           font-size: 12px;
+          color: #6b7280;
         }
-        .warning {
-          background: #fef2f2;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #ef4444;
+        .footer {
+          margin-top: 32px;
+          padding-top: 24px;
+          border-top: 1px solid #e5e7eb;
+          color: #9ca3af;
+          font-size: 13px;
+        }
+        .footer a {
+          color: #6b7280;
+        }
+        .steps {
+          background: #f9fafb;
+          padding: 16px 20px;
+          border-radius: 6px;
           margin: 20px 0;
-          color: #dc2626;
+        }
+        .steps p {
+          margin: 0 0 8px 0;
+          font-size: 14px;
+          color: #6b7280;
+        }
+        .steps p:last-child {
+          margin-bottom: 0;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <h1 class="welcome-title">Welcome to Meytle! 🎉</h1>
-        </div>
+        <div class="logo">Meytle</div>
 
         <div class="content">
-          <p>Hi <strong>${userName}</strong>,</p>
+          <p>Hey ${userName},</p>
 
-          <p>Welcome to Meytle! We're thrilled to have you join our community.</p>
-
-          <div style="text-align: center;">
-            <span class="role-badge">${
-              userRole === 'companion' 
-                ? '✨ Companion Account' 
-                : userRole === 'client'
-                ? '👤 Client Account'
-                : `⚠️ ${userRole} Account`
-            }</span>
-          </div>
-
-          ${userRole === 'companion'
-            ? `<p>As a <strong>Companion</strong>, you're one step away from:</p>
-               <ul>
-                 <li>Creating your professional profile</li>
-                 <li>Setting your availability and rates</li>
-                 <li>Connecting with clients</li>
-                 <li>Earning money by offering your time and company</li>
-               </ul>`
-            : `<p>As a <strong>Client</strong>, you're one step away from:</p>
-               <ul>
-                 <li>Browsing verified companions</li>
-                 <li>Booking companions for activities</li>
-                 <li>Creating meaningful connections</li>
-                 <li>Enjoying new experiences</li>
-               </ul>`
-          }
-
-          <div class="highlight">
-            <strong>📧 One More Step:</strong> Please verify your email address to activate your account and unlock all features.
-          </div>
+          <p>Thanks for signing up${userRole === 'companion' ? ' as a companion' : ''}. Click the button below to verify your email and activate your account.</p>
 
           <div style="text-align: center;">
             <a href="${verificationLink}" class="verify-button">
-              Verify Email & Get Started →
+              Verify Email
             </a>
           </div>
 
-          <p style="text-align: center; color: #6b7280; font-size: 14px;">
-            If the button doesn't work, copy and paste this link into your browser:
+          <p style="font-size: 13px; color: #9ca3af; text-align: center;">
+            Link expires in 24 hours
+          </p>
+
+          ${userRole === 'companion'
+            ? `<div class="steps">
+                <p><strong>After verification:</strong></p>
+                <p>1. Complete your profile</p>
+                <p>2. Add photos</p>
+                <p>3. Verify your identity</p>
+                <p>4. Start accepting bookings</p>
+              </div>`
+            : `<div class="steps">
+                <p><strong>After verification:</strong></p>
+                <p>1. Complete your profile</p>
+                <p>2. Browse companions</p>
+                <p>3. Book your first meeting</p>
+              </div>`
+          }
+
+          <p style="font-size: 13px; color: #6b7280;">
+            Button not working? Copy this link:
           </p>
           <div class="link-fallback">
             ${verificationLink}
           </div>
-
-          <p style="text-align: center; color: #6b7280;">
-            <strong>This verification link expires in 24 hours.</strong>
-          </p>
-
-          ${userRole === 'companion'
-            ? `<div class="highlight">
-                <strong>📋 Next Steps After Verification:</strong><br>
-                1. Complete your companion application<br>
-                2. Upload your profile photo<br>
-                3. Complete Veriff identity verification (5-10 minutes)<br>
-                4. Get instantly approved and start accepting bookings!
-              </div>`
-            : ``
-          }
         </div>
 
         <div class="footer">
-          <p>Best regards,<br>The Meytle Team</p>
-          <p>Need help? Contact us at support@meytle.com</p>
-          <p style="font-size: 12px; color: #9ca3af;">
-            You received this email because you signed up for Meytle.<br>
-            If you didn't create this account, please ignore this email or contact us.
+          <p>— The Meytle Team</p>
+          <p>Questions? <a href="mailto:support@meytle.com">support@meytle.com</a></p>
+          <p style="margin-top: 16px; font-size: 12px;">
+            You're receiving this because you signed up for Meytle.<br>
+            Didn't sign up? Ignore this email.
           </p>
         </div>
       </div>
@@ -262,123 +222,63 @@ const getWelcomeEmailTemplate = (userName, userRole) => {
       <title>Welcome to Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          color: #312E81;
-          margin-bottom: 10px;
-        }
-        .welcome-title {
-          color: #1f2937;
           font-size: 24px;
-          margin-bottom: 20px;
-        }
-        .content {
-          margin-bottom: 30px;
-        }
-        .role-badge {
-          display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
-          color: white;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 600;
-          margin: 10px 0;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 24px;
         }
         .cta-button {
           display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
+          background: #1e3a8a;
           color: white;
-          padding: 12px 24px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 6px;
           font-weight: 600;
-          margin: 20px 0;
+          font-size: 15px;
+          margin: 24px 0;
         }
         .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
+          margin-top: 32px;
+          padding-top: 24px;
           border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
-        }
-        .highlight {
-          background: #fef3c7;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #f59e0b;
-          margin: 20px 0;
+          color: #9ca3af;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <h1 class="welcome-title">Welcome to Meytle! 🎉</h1>
+        <div class="logo">Meytle</div>
+
+        <p>Hey ${userName},</p>
+        <p>Welcome to Meytle${userRole === 'companion' ? ' as a companion' : ''}.</p>
+
+        <p>Please verify your email to get started.</p>
+
+        <div style="text-align: center;">
+          <a href="${process.env.FRONTEND_URL}/dashboard" class="cta-button">
+            Go to Dashboard
+          </a>
         </div>
-        
-        <div class="content">
-          <p>Hi <strong>${userName}</strong>,</p>
-          
-          <p>Welcome to Meytle! We're thrilled to have you join our community of companions and clients.</p>
-          
-          <div style="text-align: center;">
-            <span class="role-badge">${userRole === 'companion' ? 'Companion' : 'Client'}</span>
-          </div>
-          
-          ${userRole === 'companion' 
-            ? `<p>As a <strong>Companion</strong>, you can:</p>
-               <ul>
-                 <li>Create your profile and showcase your interests</li>
-                 <li>Set your availability and hourly rates</li>
-                 <li>Connect with clients looking for companionship</li>
-                 <li>Earn money by offering your time and company</li>
-               </ul>`
-            : `<p>As a <strong>Client</strong>, you can:</p>
-               <ul>
-                 <li>Browse and discover amazing companions</li>
-                 <li>Book companions for various activities</li>
-                 <li>Enjoy meaningful connections and experiences</li>
-                 <li>Rate and review your experiences</li>
-               </ul>`
-          }
-          
-          <div class="highlight">
-            <strong>📧 Important:</strong> Please verify your email address to unlock all features and start ${userRole === 'companion' ? 'earning' : 'booking'}!
-          </div>
-          
-          <p>Ready to get started?</p>
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL}/dashboard" class="cta-button">
-              Go to Dashboard →
-            </a>
-          </div>
-        </div>
-        
+
         <div class="footer">
-          <p>Best regards,<br>The Meytle Team</p>
-          <p>Need help? Contact us at support@meytle.com</p>
+          <p>— Meytle</p>
         </div>
       </div>
     </body>
@@ -393,113 +293,85 @@ const getVerificationEmailTemplate = (userName, verificationLink) => {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Verify Your Email - Meytle</title>
+      <title>Verify your email - Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          color: #312E81;
-          margin-bottom: 10px;
-        }
-        .verify-title {
-          color: #1f2937;
           font-size: 24px;
-          margin-bottom: 20px;
-        }
-        .content {
-          margin-bottom: 30px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 24px;
         }
         .verify-button {
           display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
+          background: #1e3a8a;
           color: white;
-          padding: 15px 30px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 6px;
           font-weight: 600;
-          font-size: 16px;
-          margin: 20px 0;
-          text-align: center;
-        }
-        .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
-        }
-        .warning {
-          background: #fef2f2;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #ef4444;
-          margin: 20px 0;
-          color: #dc2626;
+          font-size: 15px;
+          margin: 24px 0;
         }
         .link-fallback {
           background: #f3f4f6;
-          padding: 15px;
-          border-radius: 8px;
-          margin: 20px 0;
+          padding: 12px;
+          border-radius: 6px;
+          margin: 16px 0;
           word-break: break-all;
           font-family: monospace;
           font-size: 12px;
+          color: #6b7280;
+        }
+        .footer {
+          margin-top: 32px;
+          padding-top: 24px;
+          border-top: 1px solid #e5e7eb;
+          color: #9ca3af;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <h1 class="verify-title">Verify Your Email Address 🔐</h1>
+        <div class="logo">Meytle</div>
+
+        <p>Hey ${userName},</p>
+        <p>Click below to verify your email and activate your account.</p>
+
+        <div style="text-align: center;">
+          <a href="${verificationLink}" class="verify-button">
+            Verify Email
+          </a>
         </div>
-        
-        <div class="content">
-          <p>Hi <strong>${userName}</strong>,</p>
-          
-          <p>Thank you for signing up with Meytle! To complete your registration and unlock all features, please verify your email address.</p>
-          
-          <div style="text-align: center;">
-            <a href="${verificationLink}" class="verify-button">
-              Verify Email Address
-            </a>
-          </div>
-          
-          <div class="warning">
-            <strong>⚠️ Important:</strong> Without email verification, you won't be able to book companions or earn money as a companion.
-          </div>
-          
-          <p>If the button doesn't work, copy and paste this link into your browser:</p>
-          <div class="link-fallback">
-            ${verificationLink}
-          </div>
-          
-          <p><strong>This verification link will expire in 24 hours.</strong></p>
+
+        <p style="font-size: 13px; color: #9ca3af; text-align: center;">
+          Link expires in 24 hours
+        </p>
+
+        <p style="font-size: 13px; color: #6b7280;">
+          Button not working? Copy this link:
+        </p>
+        <div class="link-fallback">
+          ${verificationLink}
         </div>
-        
+
         <div class="footer">
-          <p>Best regards,<br>The Meytle Team</p>
-          <p>Need help? Contact us at support@meytle.com</p>
+          <p>— Meytle</p>
         </div>
       </div>
     </body>
@@ -553,8 +425,8 @@ const sendWelcomeVerificationEmail = async (email, userName, userRole, verificat
 
     // Modify subject in test mode to show original recipient
     const subject = (emailMode === 'testing' && testEmailRecipient)
-      ? `[TEST: ${email}] Welcome to Meytle - Verify Your Email 🎉`
-      : 'Welcome to Meytle - Verify Your Email 🎉';
+      ? `[TEST: ${email}] Verify your email - Meytle`
+      : 'Verify your email - Meytle';
 
     const { data, error } = await resend.emails.send({
       from: `Meytle <${fromEmail}>`,
@@ -672,8 +544,7 @@ const getBookingNotificationTemplate = (bookingDetails) => {
     bookingDate,
     startTime,
     endTime,
-    timezone,         // ✅ Companion's timezone
-    clientTimezone,   // ✅ Client's timezone for reference
+    timezone,
     durationHours,
     totalAmount,
     serviceName,
@@ -682,9 +553,11 @@ const getBookingNotificationTemplate = (bookingDetails) => {
     specialRequests
   } = bookingDetails;
 
-  // Format times for display
   const formattedStartTime = formatTimeTo12Hour(startTime);
   const formattedEndTime = formatTimeTo12Hour(endTime);
+  const date = new Date(bookingDate);
+  const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const earnings = (totalAmount * 0.85).toFixed(2);
 
   return `
     <!DOCTYPE html>
@@ -692,208 +565,167 @@ const getBookingNotificationTemplate = (bookingDetails) => {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>New Booking Request - Meytle</title>
+      <title>New booking request - Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
-          border-bottom: 2px solid #312E81;
-          padding-bottom: 20px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          color: #312E81;
-          margin-bottom: 10px;
-        }
-        .title {
-          color: #1f2937;
           font-size: 24px;
-          margin-bottom: 10px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 24px;
         }
-        .booking-badge {
-          display: inline-block;
-          background: #10b981;
-          color: white;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          margin-top: 10px;
+        .earnings {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          border-radius: 6px;
+          padding: 16px 20px;
+          margin: 20px 0;
+          text-align: center;
         }
-        .content {
-          margin-bottom: 30px;
+        .earnings-amount {
+          font-size: 28px;
+          font-weight: 700;
+          color: #166534;
         }
-        .booking-details {
+        .earnings-note {
+          font-size: 13px;
+          color: #6b7280;
+          margin-top: 4px;
+        }
+        .details {
           background: #f9fafb;
-          border-radius: 8px;
+          border-radius: 6px;
           padding: 20px;
           margin: 20px 0;
         }
-        .detail-row {
+        .details-row {
           display: flex;
           justify-content: space-between;
-          padding: 10px 0;
-          border-bottom: 1px solid #e5e7eb;
+          padding: 8px 0;
+          font-size: 14px;
         }
-        .detail-row:last-child {
-          border-bottom: none;
-        }
-        .detail-label {
-          font-weight: 600;
+        .details-label {
           color: #6b7280;
         }
-        .detail-value {
-          color: #111827;
+        .details-value {
+          color: #374151;
+          font-weight: 500;
           text-align: right;
         }
-        .amount {
-          font-size: 24px;
-          font-weight: bold;
-          color: #10b981;
+        .special {
+          background: #fffbeb;
+          border-radius: 6px;
+          padding: 16px;
+          margin: 20px 0;
+          font-size: 14px;
+        }
+        .special-label {
+          font-weight: 600;
+          color: #92400e;
+          margin-bottom: 8px;
         }
         .cta-button {
           display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
+          background: #1e3a8a;
           color: white;
-          padding: 14px 28px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 6px;
           font-weight: 600;
-          font-size: 16px;
-          margin: 20px 0;
+          font-size: 15px;
+          margin: 24px 0;
         }
-        .special-requests {
-          background: #fef3c7;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #f59e0b;
-          margin: 20px 0;
+        .deadline {
+          font-size: 13px;
+          color: #dc2626;
+          text-align: center;
+          margin-top: 16px;
         }
         .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
+          margin-top: 32px;
+          padding-top: 24px;
           border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
-        }
-        .alert {
-          background: #dcfce7;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #10b981;
-          margin: 20px 0;
+          color: #9ca3af;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <h1 class="title">New Booking Request! 🎉</h1>
-          <span class="booking-badge">ACTION REQUIRED</span>
+        <div class="logo">Meytle</div>
+
+        <p>Hey ${companionName},</p>
+        <p>You have a new booking request from <strong>${clientName}</strong>.</p>
+
+        <div class="earnings">
+          <div class="earnings-amount">$${earnings}</div>
+          <div class="earnings-note">Your earnings (after 15% fee)</div>
         </div>
 
-        <div class="content">
-          <p>Hi <strong>${companionName}</strong>,</p>
-
-          <p>You have received a new booking request from <strong>${clientName}</strong>. Please review the details below and respond within 24 hours.</p>
-
-          <div class="alert">
-            <strong>💰 Potential Earnings:</strong> $${(totalAmount * 0.85).toFixed(2)} (after 15% platform fee) if you accept this booking.
+        <div class="details">
+          <div class="details-row">
+            <span class="details-label">Client</span>
+            <span class="details-value">${clientName}</span>
           </div>
-
-          <div class="booking-details">
-            <h3 style="margin-top: 0;">Booking Details</h3>
-            <div class="detail-row">
-              <span class="detail-label">Client Name:</span>
-              <span class="detail-value"><strong>${clientName}</strong></span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Date:</span>
-              <span class="detail-value">${new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Time:</span>
-              <span class="detail-value">
-                <strong>${formattedStartTime} - ${formattedEndTime}</strong>
-                ${timezone ? `<br><span style="font-size: 12px; color: #6b7280;">(Your timezone: ${timezone})</span>` : ''}
-                ${clientTimezone && clientTimezone !== timezone ? `<br><span style="font-size: 11px; color: #9ca3af;">Client's timezone: ${clientTimezone}</span>` : ''}
-              </span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Duration:</span>
-              <span class="detail-value">${durationHours} hour${durationHours > 1 ? 's' : ''}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Service:</span>
-              <span class="detail-value">${serviceName || 'Standard Companionship'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Meeting Type:</span>
-              <span class="detail-value">${meetingType === 'virtual' ? '💻 Virtual' : '👥 In-Person'}</span>
-            </div>
-            ${meetingLocation ? `
-            <div class="detail-row">
-              <span class="detail-label">Location:</span>
-              <span class="detail-value">${meetingLocation}</span>
-            </div>
-            ` : ''}
-            <div class="detail-row">
-              <span class="detail-label">Total Amount:</span>
-              <span class="detail-value" style="font-size: 18px; font-weight: bold; color: #10b981;">$${totalAmount.toFixed(2)}</span>
-            </div>
+          <div class="details-row">
+            <span class="details-label">Date</span>
+            <span class="details-value">${formattedDate}</span>
           </div>
-
-          ${specialRequests ? `
-          <div class="special-requests">
-            <strong>📋 Special Requests from Client:</strong><br>
-            ${specialRequests}
+          <div class="details-row">
+            <span class="details-label">Time</span>
+            <span class="details-value">${formattedStartTime} - ${formattedEndTime}${timezone ? ` (${timezone})` : ''}</span>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Duration</span>
+            <span class="details-value">${durationHours} hour${durationHours > 1 ? 's' : ''}</span>
+          </div>
+          <div class="details-row">
+            <span class="details-label">Type</span>
+            <span class="details-value">${meetingType === 'virtual' ? 'Virtual' : 'In-Person'}</span>
+          </div>
+          ${meetingLocation ? `
+          <div class="details-row">
+            <span class="details-label">Location</span>
+            <span class="details-value">${meetingLocation}</span>
           </div>
           ` : ''}
-
-          <p><strong>Next Steps:</strong></p>
-          <ul>
-            <li>Review the booking details and special requests carefully</li>
-            <li>Verify your availability for the requested date and time</li>
-            <li>Accept or decline this booking request in your dashboard</li>
-            <li>The client will be automatically notified of your decision</li>
-          </ul>
-
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL}/companion-dashboard" class="cta-button">
-              Review & Respond to Booking →
-            </a>
+          <div class="details-row">
+            <span class="details-label">Total</span>
+            <span class="details-value">$${totalAmount.toFixed(2)}</span>
           </div>
-
-          <p style="text-align: center; color: #dc2626; font-size: 14px; font-weight: 600;">
-            ⏰ Please respond within 24 hours to avoid automatic cancellation.
-          </p>
         </div>
 
+        ${specialRequests ? `
+        <div class="special">
+          <div class="special-label">Special requests:</div>
+          ${specialRequests}
+        </div>
+        ` : ''}
+
+        <div style="text-align: center;">
+          <a href="${process.env.FRONTEND_URL}/companion-dashboard" class="cta-button">
+            Review Booking
+          </a>
+        </div>
+
+        <p class="deadline">Respond within 24 hours or booking auto-cancels</p>
+
         <div class="footer">
-          <p>Best regards,<br>The Meytle Team</p>
-          <p>Need help? Contact us at support@meytle.com</p>
-          <p style="font-size: 12px; color: #9ca3af;">
-            You received this email because you have an active companion account on Meytle.<br>
-            Manage your notification preferences in your dashboard settings.
-          </p>
+          <p>— Meytle</p>
         </div>
       </div>
     </body>
@@ -903,17 +735,10 @@ const getBookingNotificationTemplate = (bookingDetails) => {
 
 // Get booking confirmation email template (to client when companion accepts)
 const getBookingConfirmationTemplate = (clientName, companionName, bookingDetails) => {
-  const { bookingDate, startTime, endTime, totalAmount, meetingLocation, serviceName, timezone } = bookingDetails;
-  
-  const date = new Date(bookingDate);
-  const formattedDate = date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  const { bookingDate, startTime, endTime, totalAmount, meetingLocation, timezone } = bookingDetails;
 
-  // Format times to 12-hour format
+  const date = new Date(bookingDate);
+  const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const formattedStartTime = formatTimeTo12Hour(startTime);
   const formattedEndTime = formatTimeTo12Hour(endTime);
 
@@ -923,186 +748,155 @@ const getBookingConfirmationTemplate = (clientName, companionName, bookingDetail
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Booking Confirmed - Meytle</title>
+      <title>Booking confirmed - Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 10px;
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 24px;
         }
-        .title {
-          color: #10b981;
-          font-size: 28px;
-          margin-bottom: 10px;
+        .confirmed {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          border-radius: 6px;
+          padding: 16px 20px;
+          margin: 20px 0;
+          text-align: center;
         }
-        .success-badge {
-          display: inline-block;
-          background: #10b981;
-          color: white;
-          padding: 8px 20px;
-          border-radius: 20px;
-          font-size: 14px;
+        .confirmed-text {
+          font-size: 16px;
           font-weight: 600;
-          margin: 10px 0;
+          color: #166534;
         }
-        .booking-details {
+        .details {
           background: #f9fafb;
-          border-radius: 8px;
+          border-radius: 6px;
           padding: 20px;
           margin: 20px 0;
         }
-        .detail-row {
+        .details-row {
           display: flex;
           justify-content: space-between;
-          padding: 10px 0;
-          border-bottom: 1px solid #e5e7eb;
+          padding: 8px 0;
+          font-size: 14px;
         }
-        .detail-row:last-child {
-          border-bottom: none;
-        }
-        .detail-label {
-          font-weight: 600;
+        .details-label {
           color: #6b7280;
         }
-        .detail-value {
-          color: #111827;
+        .details-value {
+          color: #374151;
+          font-weight: 500;
           text-align: right;
         }
-        .highlight-box {
-          background: #dcfce7;
-          border-left: 4px solid #10b981;
-          padding: 15px;
-          border-radius: 8px;
+        .info {
+          background: #f9fafb;
+          border-radius: 6px;
+          padding: 16px 20px;
           margin: 20px 0;
+          font-size: 14px;
         }
-        .info-box {
-          background: #eff6ff;
-          border-left: 4px solid #3b82f6;
-          padding: 15px;
-          border-radius: 8px;
-          margin: 20px 0;
+        .info p {
+          margin: 6px 0;
+          color: #6b7280;
+        }
+        .info strong {
+          color: #374151;
         }
         .cta-button {
           display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
+          background: #1e3a8a;
           color: white;
-          padding: 14px 28px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 6px;
           font-weight: 600;
-          font-size: 16px;
-          margin: 20px 0;
+          font-size: 15px;
+          margin: 24px 0;
+        }
+        .note {
+          font-size: 13px;
+          color: #9ca3af;
+          text-align: center;
+          margin-top: 16px;
         }
         .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
+          margin-top: 32px;
+          padding-top: 24px;
           border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
+          color: #9ca3af;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <div class="title">🎉 Booking Confirmed!</div>
-          <span class="success-badge">CONFIRMED</span>
+        <div class="logo">Meytle</div>
+
+        <p>Hey ${clientName},</p>
+        <p><strong>${companionName}</strong> accepted your booking.</p>
+
+        <div class="confirmed">
+          <div class="confirmed-text">Booking Confirmed</div>
         </div>
 
-        <div class="content">
-          <p>Hi <strong>${clientName}</strong>,</p>
-
-          <p>Great news! <strong>${companionName}</strong> has accepted your booking request.</p>
-
-          <div class="highlight-box">
-            <strong>✅ Your booking is now confirmed!</strong> You'll receive an OTP verification code 30 minutes before your meeting starts.
+        <div class="details">
+          <div class="details-row">
+            <span class="details-label">Companion</span>
+            <span class="details-value">${companionName}</span>
           </div>
-
-          <div class="booking-details">
-            <h3 style="margin-top: 0;">📅 Booking Details</h3>
-            <div class="detail-row">
-              <span class="detail-label">Companion:</span>
-              <span class="detail-value"><strong>${companionName}</strong></span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Date:</span>
-              <span class="detail-value">${formattedDate}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Time:</span>
-              <span class="detail-value">
-                <strong>${formattedStartTime} - ${formattedEndTime}</strong>
-                ${timezone ? `<br><span style="font-size: 12px; color: #6b7280;">
-                  (Your timezone: ${timezone})</span>` : ''}
-              </span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Service:</span>
-              <span class="detail-value">${serviceName || 'Companionship'}</span>
-            </div>
-            ${meetingLocation ? `
-            <div class="detail-row">
-              <span class="detail-label">Location:</span>
-              <span class="detail-value">${meetingLocation}</span>
-            </div>
-            ` : ''}
-            <div class="detail-row">
-              <span class="detail-label">Total Amount:</span>
-              <span class="detail-value" style="font-size: 18px; font-weight: bold; color: #10b981;">$${totalAmount.toFixed(2)}</span>
-            </div>
+          <div class="details-row">
+            <span class="details-label">Date</span>
+            <span class="details-value">${formattedDate}</span>
           </div>
-
-          <div class="info-box">
-            <strong>📍 Before Your Meeting:</strong><br>
-            • You'll receive an OTP code 30 minutes before the meeting<br>
-            • Meet your companion at the agreed location<br>
-            • Exchange OTP codes to verify the meeting<br>
-            • Both parties must verify for payment to be processed
+          <div class="details-row">
+            <span class="details-label">Time</span>
+            <span class="details-value">${formattedStartTime} - ${formattedEndTime}${timezone ? ` (${timezone})` : ''}</span>
           </div>
-
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL}/client-dashboard" class="cta-button">
-              View Booking Details →
-            </a>
+          ${meetingLocation ? `
+          <div class="details-row">
+            <span class="details-label">Location</span>
+            <span class="details-value">${meetingLocation}</span>
           </div>
-
-          <p style="text-align: center; color: #6b7280; font-size: 14px;">
-            Need to cancel? You can cancel up to 24 hours before the meeting for a full refund.
-          </p>
+          ` : ''}
+          <div class="details-row">
+            <span class="details-label">Total</span>
+            <span class="details-value">$${totalAmount.toFixed(2)}</span>
+          </div>
         </div>
+
+        <div class="info">
+          <p><strong>Before your meeting:</strong></p>
+          <p>1. You'll get an OTP code 30 min before</p>
+          <p>2. Meet at the agreed location</p>
+          <p>3. Exchange codes to verify</p>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="${process.env.FRONTEND_URL}/client-dashboard" class="cta-button">
+            View Booking
+          </a>
+        </div>
+
+        <p class="note">Cancel up to 24 hours before for a full refund</p>
 
         <div class="footer">
-          <p>Best regards,<br>The Meytle Team</p>
-          <p>Need help? Contact us at support@meytle.com</p>
-          <p style="font-size: 12px; color: #9ca3af;">
-            You received this email because you have an active booking on Meytle.<br>
-            Manage your notification preferences in your dashboard settings.
-          </p>
+          <p>— Meytle</p>
         </div>
       </div>
     </body>
@@ -1132,8 +926,8 @@ const sendBookingConfirmationEmail = async (clientEmail, clientName, companionNa
 
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@meytle.com';
     const subject = (emailMode === 'testing' && testEmailRecipient)
-      ? `[TEST: ${clientEmail}] Booking Confirmed with ${companionName}`
-      : `Booking Confirmed with ${companionName}! 🎉`;
+      ? `[TEST: ${clientEmail}] Booking confirmed with ${companionName}`
+      : `Booking confirmed with ${companionName}`;
 
     const { data, error } = await resend.emails.send({
       from: `Meytle <${fromEmail}>`,
@@ -1214,17 +1008,10 @@ const sendBookingNotificationEmail = async (companionEmail, bookingDetails) => {
 
 // Get booking cancellation email template (to client when companion rejects)
 const getBookingCancellationTemplate = (clientName, companionName, bookingDetails, reason) => {
-  const { bookingDate, startTime, serviceName, timezone } = bookingDetails;
-  
-  const date = new Date(bookingDate);
-  const formattedDate = date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  const { bookingDate, startTime, timezone } = bookingDetails;
 
-  // Format time to 12-hour format
+  const date = new Date(bookingDate);
+  const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const formattedStartTime = formatTimeTo12Hour(startTime);
 
   return `
@@ -1233,180 +1020,147 @@ const getBookingCancellationTemplate = (clientName, companionName, bookingDetail
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Booking Cancelled - Meytle</title>
+      <title>Booking cancelled - Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 10px;
-        }
-        .title {
-          color: #ef4444;
           font-size: 24px;
-          margin-bottom: 10px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 24px;
         }
-        .cancelled-badge {
-          display: inline-block;
-          background: #fee2e2;
-          color: #dc2626;
-          padding: 8px 20px;
-          border-radius: 20px;
-          font-size: 14px;
+        .cancelled {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          border-radius: 6px;
+          padding: 16px 20px;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .cancelled-text {
+          font-size: 16px;
           font-weight: 600;
-          margin: 10px 0;
+          color: #dc2626;
         }
-        .booking-details {
+        .reason {
+          background: #fef2f2;
+          border-radius: 6px;
+          padding: 16px;
+          margin: 20px 0;
+          font-size: 14px;
+          color: #991b1b;
+        }
+        .details {
           background: #f9fafb;
-          border-radius: 8px;
+          border-radius: 6px;
           padding: 20px;
           margin: 20px 0;
         }
-        .detail-row {
+        .details-row {
           display: flex;
           justify-content: space-between;
-          padding: 10px 0;
-          border-bottom: 1px solid #e5e7eb;
+          padding: 8px 0;
+          font-size: 14px;
         }
-        .detail-row:last-child {
-          border-bottom: none;
-        }
-        .detail-label {
-          font-weight: 600;
+        .details-label {
           color: #6b7280;
         }
-        .detail-value {
-          color: #111827;
+        .details-value {
+          color: #374151;
+          font-weight: 500;
           text-align: right;
         }
-        .warning-box {
-          background: #fef2f2;
-          border-left: 4px solid #ef4444;
-          padding: 15px;
-          border-radius: 8px;
+        .refund {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          border-radius: 6px;
+          padding: 16px 20px;
           margin: 20px 0;
+          font-size: 14px;
         }
-        .info-box {
-          background: #eff6ff;
-          border-left: 4px solid #3b82f6;
-          padding: 15px;
-          border-radius: 8px;
-          margin: 20px 0;
+        .refund p {
+          margin: 4px 0;
+          color: #166534;
         }
         .cta-button {
           display: inline-block;
-          background: linear-gradient(135deg, #312E81, #FFCCCB);
+          background: #1e3a8a;
           color: white;
-          padding: 14px 28px;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 6px;
           font-weight: 600;
-          font-size: 16px;
-          margin: 20px 0;
+          font-size: 15px;
+          margin: 24px 0;
         }
         .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
+          margin-top: 32px;
+          padding-top: 24px;
           border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
+          color: #9ca3af;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <div class="title">Booking Cancelled</div>
-          <span class="cancelled-badge">CANCELLED</span>
+        <div class="logo">Meytle</div>
+
+        <p>Hey ${clientName},</p>
+        <p><strong>${companionName}</strong> couldn't accept your booking.</p>
+
+        <div class="cancelled">
+          <div class="cancelled-text">Booking Cancelled</div>
         </div>
 
-        <div class="content">
-          <p>Hi <strong>${clientName}</strong>,</p>
+        ${reason ? `
+        <div class="reason">
+          <strong>Reason:</strong> ${reason}
+        </div>
+        ` : ''}
 
-          <p>Unfortunately, <strong>${companionName}</strong> is unable to accept your booking request.</p>
-
-          ${reason ? `
-          <div class="warning-box">
-            <strong>Reason:</strong><br>${reason}
+        <div class="details">
+          <div class="details-row">
+            <span class="details-label">Companion</span>
+            <span class="details-value">${companionName}</span>
           </div>
-          ` : ''}
-
-          <div class="booking-details">
-            <h3 style="margin-top: 0;">📅 Cancelled Booking</h3>
-            <div class="detail-row">
-              <span class="detail-label">Companion:</span>
-              <span class="detail-value">${companionName}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Date:</span>
-              <span class="detail-value">${formattedDate}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Time:</span>
-              <span class="detail-value">
-                <strong>${formattedStartTime}</strong>
-                ${timezone ? `<br><span style="font-size: 12px; color: #6b7280;">
-                  (Your timezone: ${timezone})</span>` : ''}
-              </span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Service:</span>
-              <span class="detail-value">${serviceName || 'Companionship'}</span>
-            </div>
+          <div class="details-row">
+            <span class="details-label">Date</span>
+            <span class="details-value">${formattedDate}</span>
           </div>
-
-          <div class="info-box">
-            <strong>💰 Refund Information:</strong><br>
-            • You will receive a full refund within 5-7 business days<br>
-            • The refund will be processed to your original payment method<br>
-            • No cancellation fees apply when a companion declines
+          <div class="details-row">
+            <span class="details-label">Time</span>
+            <span class="details-value">${formattedStartTime}${timezone ? ` (${timezone})` : ''}</span>
           </div>
+        </div>
 
-          <p><strong>What's Next?</strong></p>
-          <ul>
-            <li>Browse other available companions in your area</li>
-            <li>Send booking requests to multiple companions</li>
-            <li>Check our featured companions for quick responses</li>
-          </ul>
+        <div class="refund">
+          <p><strong>Full refund incoming</strong></p>
+          <p>5-7 business days to your original payment method</p>
+        </div>
 
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL}/browse-companions" class="cta-button">
-              Browse Other Companions →
-            </a>
-          </div>
+        <div style="text-align: center;">
+          <a href="${process.env.FRONTEND_URL}/browse-companions" class="cta-button">
+            Browse Companions
+          </a>
         </div>
 
         <div class="footer">
-          <p>We're sorry this didn't work out this time!</p>
-          <p>Best regards,<br>The Meytle Team</p>
-          <p>Need help? Contact us at support@meytle.com</p>
-          <p style="font-size: 12px; color: #9ca3af;">
-            You received this email because you had a booking request on Meytle.
-          </p>
+          <p>— Meytle</p>
         </div>
       </div>
     </body>

@@ -43,21 +43,19 @@ const formatTimeTo12Hour = (time24) => {
  */
 const getOTPEmailTemplate = (userName, userType, otpCode, meetingDetails) => {
   const { bookingDate, startTime, endTime, meetingLocation, otherPartyName, timezone } = meetingDetails;
-  
+
   // Format date nicely
   const date = new Date(bookingDate);
-  const formattedDate = date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const formattedDate = date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
   });
 
   // Format times to 12-hour format
   const formattedStartTime = formatTimeTo12Hour(startTime);
   const formattedEndTime = formatTimeTo12Hour(endTime);
 
-  const recipientRole = userType === 'client' ? 'Client' : 'Companion';
   const otherRole = userType === 'client' ? 'companion' : 'client';
 
   return `
@@ -66,209 +64,131 @@ const getOTPEmailTemplate = (userName, userType, otpCode, meetingDetails) => {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Meeting Verification Code - Meytle</title>
+      <title>Your verification code - Meytle</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #374151;
+          max-width: 520px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #f8f9fa;
+          padding: 40px 20px;
+          background-color: #f9fafb;
         }
         .container {
           background: white;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
+          border-radius: 8px;
+          padding: 40px;
+          border: 1px solid #e5e7eb;
         }
         .logo {
-          font-size: 28px;
-          font-weight: bold;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 10px;
-        }
-        .title {
-          color: #1f2937;
           font-size: 24px;
-          margin-bottom: 10px;
+          font-weight: 700;
+          color: #1e3a8a;
+          margin-bottom: 24px;
         }
-        .otp-container {
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          padding: 30px;
-          border-radius: 12px;
+        .otp-box {
+          background: #f9fafb;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 24px;
           text-align: center;
-          margin: 30px 0;
-        }
-        .otp-label {
-          color: white;
-          font-size: 14px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin-bottom: 10px;
+          margin: 24px 0;
         }
         .otp-code {
-          font-size: 48px;
-          font-weight: bold;
-          color: white;
-          letter-spacing: 8px;
-          font-family: 'Courier New', monospace;
-          margin: 10px 0;
+          font-size: 36px;
+          font-weight: 700;
+          color: #1e3a8a;
+          letter-spacing: 6px;
+          font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+          margin: 8px 0;
         }
-        .otp-instruction {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 14px;
-          margin-top: 10px;
+        .otp-note {
+          font-size: 13px;
+          color: #6b7280;
+          margin-top: 8px;
         }
-        .meeting-details {
-          background: #f3f4f6;
-          padding: 20px;
-          border-radius: 8px;
+        .details {
+          background: #f9fafb;
+          border-radius: 6px;
+          padding: 16px 20px;
           margin: 20px 0;
+          font-size: 14px;
         }
-        .meeting-details h3 {
-          margin-top: 0;
-          color: #1f2937;
-          font-size: 18px;
-        }
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        .detail-row:last-child {
-          border-bottom: none;
-        }
-        .detail-label {
-          font-weight: 600;
+        .details p {
+          margin: 6px 0;
           color: #6b7280;
         }
-        .detail-value {
-          color: #1f2937;
+        .details strong {
+          color: #374151;
         }
-        .warning-box {
-          background: #fef3c7;
-          border-left: 4px solid #f59e0b;
-          padding: 15px;
-          border-radius: 8px;
+        .steps {
           margin: 20px 0;
+          padding: 0;
+          list-style: none;
         }
-        .warning-box strong {
-          color: #92400e;
+        .steps li {
+          padding: 8px 0;
+          padding-left: 24px;
+          position: relative;
+          font-size: 14px;
+          color: #6b7280;
         }
-        .instructions {
-          background: #eff6ff;
-          border-left: 4px solid #3b82f6;
-          padding: 15px;
-          border-radius: 8px;
-          margin: 20px 0;
+        .steps li:before {
+          content: attr(data-step);
+          position: absolute;
+          left: 0;
+          color: #9ca3af;
+          font-size: 13px;
         }
-        .instructions h4 {
-          margin-top: 0;
-          color: #1e40af;
-        }
-        .instructions ol {
-          margin: 10px 0;
-          padding-left: 20px;
-        }
-        .instructions li {
-          margin: 8px 0;
-          color: #1f2937;
+        .note {
+          font-size: 13px;
+          color: #9ca3af;
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e7eb;
         }
         .footer {
-          text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
+          margin-top: 32px;
+          padding-top: 24px;
           border-top: 1px solid #e5e7eb;
-          color: #6b7280;
-          font-size: 14px;
-        }
-        .security-notice {
-          background: #fee2e2;
-          border-left: 4px solid #ef4444;
-          padding: 15px;
-          border-radius: 8px;
-          margin: 20px 0;
-        }
-        .security-notice strong {
-          color: #991b1b;
+          color: #9ca3af;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <div class="logo">Meytle</div>
-          <div class="title">🔐 Meeting Verification Code</div>
-          <p>Hi ${userName},</p>
-        </div>
+        <div class="logo">Meytle</div>
 
-        <p>Your meeting is scheduled to start soon! For security and safety, both parties need to verify they are at the meeting location.</p>
+        <p>Hey ${userName},</p>
+        <p>Your meeting starts soon. Share this code with your ${otherRole} when you meet.</p>
 
-        <div class="otp-container">
-          <div class="otp-label">Your Verification Code</div>
+        <div class="otp-box">
           <div class="otp-code">${otpCode}</div>
-          <div class="otp-instruction">Share this code with your ${otherRole} when you meet</div>
+          <div class="otp-note">Expires 1 hour after meeting start</div>
         </div>
 
-        <div class="meeting-details">
-          <h3>📅 Meeting Details</h3>
-          <div class="detail-row">
-            <span class="detail-label">Date:</span>
-            <span class="detail-value">${formattedDate}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Time:</span>
-            <span class="detail-value">
-              <strong>${formattedStartTime} - ${formattedEndTime}</strong>
-              ${timezone ? `<br><span style="font-size: 12px; color: #6b7280;">
-                (Your timezone: ${timezone})</span>` : ''}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Meeting with:</span>
-            <span class="detail-value">${otherPartyName}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Location:</span>
-            <span class="detail-value">${meetingLocation || 'Not specified'}</span>
-          </div>
+        <div class="details">
+          <p><strong>${otherPartyName}</strong></p>
+          <p>${formattedDate} at ${formattedStartTime}${timezone ? ` (${timezone})` : ''}</p>
+          <p>${meetingLocation || 'Location not specified'}</p>
         </div>
 
-        <div class="instructions">
-          <h4>📍 How to Verify Your Meeting:</h4>
-          <ol>
-            <li>Arrive at the meeting location</li>
-            <li>Meet your ${otherRole} in person</li>
-            <li>They will share their verification code with you</li>
-            <li>Enter their code in the Meytle app</li>
-            <li>Your ${otherRole} will enter your code (${otpCode})</li>
-            <li>Both codes must be verified for the meeting to proceed</li>
-          </ol>
-        </div>
+        <p style="font-size: 14px; color: #6b7280; margin-top: 24px;"><strong>How it works:</strong></p>
+        <ul class="steps">
+          <li data-step="1.">Meet at the location</li>
+          <li data-step="2.">Exchange codes with your ${otherRole}</li>
+          <li data-step="3.">Enter their code in the app</li>
+          <li data-step="4.">Both must verify for payment to process</li>
+        </ul>
 
-        <div class="warning-box">
-          <strong>⏰ Important:</strong> This code expires 1 hour after your meeting start time. Both parties must verify within this timeframe for the meeting to be confirmed and payment to be processed.
-        </div>
-
-        <div class="security-notice">
-          <strong>🔒 Security Notice:</strong> The app will also verify that both parties are physically present at the meeting location using GPS. This is for your safety and security. If verification fails, the booking will be automatically cancelled and the client will receive a full refund.
+        <div class="note">
+          GPS verification is also required. Both parties must be at the meeting location.
         </div>
 
         <div class="footer">
-          <p>This is an automated message from Meytle.</p>
-          <p>If you have questions, please contact support.</p>
-          <p>&copy; ${new Date().getFullYear()} Meytle. All rights reserved.</p>
+          <p>— Meytle</p>
         </div>
       </div>
     </body>
@@ -325,7 +245,7 @@ const sendOTPEmail = async (userEmail, userName, userType, otpCode, meetingDetai
     const data = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Meytle <noreply@meytle.com>',
       to: [userEmail],
-      subject: `🔐 Your Meeting Verification Code - ${otpCode}`,
+      subject: `Your verification code: ${otpCode}`,
       html: emailHtml
     });
 
