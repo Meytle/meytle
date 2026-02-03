@@ -27,11 +27,23 @@ export function convertFromUTC(
       return utcTime;
     }
 
+    // Normalize time to HH:MM:SS format (handle times without seconds)
+    const timeParts = utcTime.split(':');
+    const normalizedTime = timeParts.length === 2
+      ? `${timeParts[0]}:${timeParts[1]}:00`
+      : utcTime;
+
     // Create UTC date
-    const utcDateTimeStr = `${date}T${utcTime}Z`; // Z indicates UTC
+    const utcDateTimeStr = `${date}T${normalizedTime}Z`; // Z indicates UTC
     const utcDate = new Date(utcDateTimeStr);
 
-    console.log('🕐 convertFromUTC: Created UTC date', { utcDateTimeStr, utcDate: utcDate.toISOString() });
+    // Check if date is valid
+    if (isNaN(utcDate.getTime())) {
+      console.error('🕐 convertFromUTC: Invalid date created', { utcDateTimeStr, date, utcTime });
+      return utcTime;
+    }
+
+    console.log('🕐 convertFromUTC: Created UTC date', { utcDateTimeStr, utcDate: utcDate.toISOString(), userTimezone });
 
     // Convert to user's timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
