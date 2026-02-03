@@ -164,7 +164,7 @@ const getCombinedWelcomeVerificationTemplate = (userName, userRole, verification
           <p>Thanks for signing up${userRole === 'companion' ? ' as a companion' : ''}. Click the button below to verify your email and activate your account.</p>
 
           <div style="text-align: center;">
-            <a href="${verificationLink}" class="verify-button">
+            <a href="${verificationLink}" class="verify-button" style="display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
               Verify Email
             </a>
           </div>
@@ -272,7 +272,7 @@ const getWelcomeEmailTemplate = (userName, userRole) => {
         <p>Please verify your email to get started.</p>
 
         <div style="text-align: center;">
-          <a href="${process.env.FRONTEND_URL}/dashboard" class="cta-button">
+          <a href="${process.env.FRONTEND_URL}/dashboard" class="cta-button" style="display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
             Go to Dashboard
           </a>
         </div>
@@ -354,7 +354,7 @@ const getVerificationEmailTemplate = (userName, verificationLink) => {
         <p>Click below to verify your email and activate your account.</p>
 
         <div style="text-align: center;">
-          <a href="${verificationLink}" class="verify-button">
+          <a href="${verificationLink}" class="verify-button" style="display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
             Verify Email
           </a>
         </div>
@@ -717,7 +717,7 @@ const getBookingNotificationTemplate = (bookingDetails) => {
         ` : ''}
 
         <div style="text-align: center;">
-          <a href="${process.env.FRONTEND_URL}/companion-dashboard" class="cta-button">
+          <a href="${process.env.FRONTEND_URL}/companion-dashboard" class="cta-button" style="display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
             Review Booking
           </a>
         </div>
@@ -888,7 +888,7 @@ const getBookingConfirmationTemplate = (clientName, companionName, bookingDetail
         </div>
 
         <div style="text-align: center;">
-          <a href="${process.env.FRONTEND_URL}/client-dashboard" class="cta-button">
+          <a href="${process.env.FRONTEND_URL}/client-dashboard" class="cta-button" style="display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
             View Booking
           </a>
         </div>
@@ -1154,7 +1154,7 @@ const getBookingCancellationTemplate = (clientName, companionName, bookingDetail
         </div>
 
         <div style="text-align: center;">
-          <a href="${process.env.FRONTEND_URL}/browse-companions" class="cta-button">
+          <a href="${process.env.FRONTEND_URL}/browse-companions" class="cta-button" style="display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
             Browse Companions
           </a>
         </div>
