@@ -83,73 +83,41 @@ export function convertToUTC(
 ): string {
   try {
     if (!localTime || !date) return localTime;
-    
+
     // If timezone is UTC, return as-is
     if (userTimezone === 'UTC') return localTime;
 
-    // Create date in user's timezone
-    const localDateTimeStr = `${date}T${localTime}`;
-    
-    // Parse as if it's in the user's timezone
-    // We need to create a Date object that represents this time in the user's timezone
+    // Normalize time to HH:MM:SS format
+    const timeParts = localTime.split(':');
+    const hour = timeParts[0] || '00';
+    const minute = timeParts[1] || '00';
+    const second = timeParts[2] || '00';
+
+    // Create date string - browser parses this in local timezone
+    const localDateTimeStr = `${date}T${hour}:${minute}:${second}`;
     const localDate = new Date(localDateTimeStr);
-    
-    // Get the time in user's timezone
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: userTimezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-    
-    // Create a date as if it's in UTC, then get UTC time
-    // This is a workaround to handle timezone conversion properly
-    const [year, month, day] = date.split('-');
-    const [hour, minute, second] = localTime.split(':');
-    
-    // Create date string in user's timezone
-    const dateInUserTZ = new Date(
-      `${year}-${month}-${day}T${hour}:${minute}:${second || '00'}`
-    );
-    
-    // Get the UTC equivalent
-    const utcFormatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'UTC',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-    
-    // Calculate offset and convert
-    const userOffset = getTimezoneOffset(userTimezone, dateInUserTZ);
-    const utcTime = new Date(dateInUserTZ.getTime() - (userOffset * 60 * 1000));
-    
-    const utcHour = String(utcTime.getUTCHours()).padStart(2, '0');
-    const utcMinute = String(utcTime.getUTCMinutes()).padStart(2, '0');
-    const utcSecond = String(utcTime.getUTCSeconds()).padStart(2, '0');
-    
-    return `${utcHour}:${utcMinute}:${utcSecond}`;
+
+    console.log('🕐 convertToUTC: Input', { localTime, date, userTimezone, localDateTimeStr });
+
+    // Check if date is valid
+    if (isNaN(localDate.getTime())) {
+      console.error('🕐 convertToUTC: Invalid date', { localDateTimeStr });
+      return localTime;
+    }
+
+    // The Date object internally stores UTC timestamp
+    // getUTCHours/Minutes/Seconds gives us the UTC equivalent
+    const utcHour = String(localDate.getUTCHours()).padStart(2, '0');
+    const utcMinute = String(localDate.getUTCMinutes()).padStart(2, '0');
+    const utcSecond = String(localDate.getUTCSeconds()).padStart(2, '0');
+
+    const result = `${utcHour}:${utcMinute}:${utcSecond}`;
+    console.log('🕐 convertToUTC: Result', { input: localTime, output: result });
+
+    return result;
   } catch (error) {
     console.error('Error converting time to UTC:', error);
     return localTime; // Return original on error
-  }
-}
-
-/**
- * Get timezone offset in minutes
- */
-function getTimezoneOffset(timezone: string, date: Date): number {
-  try {
-    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const tzDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
-    return (tzDate.getTime() - utcDate.getTime()) / (1000 * 60);
-  } catch (error) {
-    return 0;
   }
 }
 
