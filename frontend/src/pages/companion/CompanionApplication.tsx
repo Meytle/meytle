@@ -22,7 +22,6 @@ interface ApplicationFormData {
   gender: string;
   phoneNumber: string;
   backgroundCheckConsent: boolean;
-  termsAccepted: boolean;
   interests: string[];
   bio: string;
   services: string[];
@@ -44,7 +43,6 @@ const CompanionApplication = () => {
     gender: '',
     phoneNumber: '',
     backgroundCheckConsent: false,
-    termsAccepted: false,
     interests: [],
     bio: '',
     services: [],
@@ -156,10 +154,6 @@ const CompanionApplication = () => {
     
     if (!formData.backgroundCheckConsent) {
       toast.error('Please consent to the background check');
-      return;
-    }
-    if (!formData.termsAccepted) {
-      toast.error('Please accept the terms and conditions');
       return;
     }
 
@@ -497,27 +491,6 @@ const CompanionApplication = () => {
                 </label>
               </div>
 
-              <div className="flex items-start">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  checked={formData.termsAccepted}
-                  onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
-                  className="w-5 h-5 text-[#312E81] border-2 border-gray-300 rounded focus:ring-[#312E81] focus:ring-2 mt-0.5"
-                  required
-                />
-                <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
-                  I accept the{' '}
-                  <a href="#" className="text-[#312E81] hover:text-[#1E1B4B] font-semibold">
-                    terms and conditions
-                  </a>
-                  {' '}and{' '}
-                  <a href="#" className="text-[#312E81] hover:text-[#1E1B4B] font-semibold">
-                    privacy policy
-                  </a>{' '}
-                  <span className="text-red-500">*</span>
-                </label>
-              </div>
             </div>
 
             {/* Submit Button */}
