@@ -106,7 +106,7 @@ const getCombinedWelcomeVerificationTemplate = (userName, userRole, verification
         }
         .verify-button {
           display: inline-block;
-          background: #1e3a8a;
+          background: #2563eb;
           color: white;
           padding: 14px 32px;
           text-decoration: none;
@@ -244,7 +244,7 @@ const getWelcomeEmailTemplate = (userName, userRole) => {
         }
         .cta-button {
           display: inline-block;
-          background: #1e3a8a;
+          background: #2563eb;
           color: white;
           padding: 14px 32px;
           text-decoration: none;
@@ -318,7 +318,7 @@ const getVerificationEmailTemplate = (userName, verificationLink) => {
         }
         .verify-button {
           display: inline-block;
-          background: #1e3a8a;
+          background: #2563eb;
           color: white;
           padding: 14px 32px;
           text-decoration: none;
@@ -640,7 +640,7 @@ const getBookingNotificationTemplate = (bookingDetails) => {
         }
         .cta-button {
           display: inline-block;
-          background: #1e3a8a;
+          background: #2563eb;
           color: white;
           padding: 14px 32px;
           text-decoration: none;
@@ -820,7 +820,7 @@ const getBookingConfirmationTemplate = (clientName, companionName, bookingDetail
         }
         .cta-button {
           display: inline-block;
-          background: #1e3a8a;
+          background: #2563eb;
           color: white;
           padding: 14px 32px;
           text-decoration: none;
@@ -1098,7 +1098,7 @@ const getBookingCancellationTemplate = (clientName, companionName, bookingDetail
         }
         .cta-button {
           display: inline-block;
-          background: #1e3a8a;
+          background: #2563eb;
           color: white;
           padding: 14px 32px;
           text-decoration: none;
