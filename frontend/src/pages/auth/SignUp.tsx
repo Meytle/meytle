@@ -14,6 +14,7 @@ const SignUp = () => {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [currentStep, setCurrentStep] = useState(1); // Step 1: Role selection, Step 2: Registration form
+  const [error, setError] = useState('');
   const { signUp, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -42,16 +43,18 @@ const SignUp = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
     if (!selectedRole) {
-      alert('Please select a role');
+      setError('Please select a role');
       return;
     }
     if (!allRequirementsMet) {
-      alert('Please meet all password requirements');
+      setError('Please meet all password requirements');
       return;
     }
     if (!agreedToTerms) {
-      alert('Please agree to the terms');
+      setError('Please agree to the terms');
       return;
     }
 
@@ -62,8 +65,8 @@ const SignUp = () => {
         password,
         roles: [selectedRole]
       });
-    } catch (error) {
-      console.error('Sign up error:', error);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create account. Please try again.');
     }
   };
 
@@ -97,10 +100,22 @@ const SignUp = () => {
       {/* Right Side - Sign Up Form (40%) */}
       <div className="w-full lg:w-2/5 flex items-center justify-center bg-gradient-to-br from-[#FFF0F0] via-[#FFE5E5] to-[#FFCCCB]">
         <div className="w-full max-w-md px-8 py-12">
+          {/* Mobile Logo - only visible on small screens */}
+          <div className="lg:hidden text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#1e3a8a] to-[#1e4e8f] bg-clip-text text-transparent">Meytle</h1>
+          </div>
+
           {/* Join us heading */}
-          <h2 className="text-3xl font-bold text-gray-900 mb-10 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
             Join us
           </h2>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* Sign Up Form */}
           <motion.div
@@ -313,7 +328,7 @@ const SignUp = () => {
                       {agreedToTerms && <FaCheck className="w-2.5 h-2.5 text-white" />}
                     </div>
                     <span className="text-xs text-gray-600">
-                      I agree to the terms
+                      I agree to the <Link to="/terms" className="text-[#1e4e8f] hover:underline">terms</Link>
                     </span>
                   </label>
                 </div>

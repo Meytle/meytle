@@ -9,15 +9,17 @@ const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const { signIn, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       await signIn({ email, password });
-    } catch (error) {
-      console.error('Sign in error:', error);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid email or password');
     }
   };
 
@@ -51,10 +53,22 @@ const SignIn = () => {
       {/* Right Side - Login Form (40%) */}
       <div className="w-full lg:w-2/5 flex items-center justify-center bg-gradient-to-br from-[#FFF0F0] via-[#FFE5E5] to-[#FFCCCB]">
         <div className="w-full max-w-md px-8 py-12">
+          {/* Mobile Logo - only visible on small screens */}
+          <div className="lg:hidden text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#1e3a8a] to-[#1e4e8f] bg-clip-text text-transparent">Meytle</h1>
+          </div>
+
           {/* Simple Log in heading */}
-          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             Log in
           </h2>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* Login Form */}
           <form
@@ -128,20 +142,16 @@ const SignIn = () => {
 
             {/* Forgot password link - Cloud-like box */}
             <div className="flex justify-center pt-6">
-              <div
-                className="inline-block px-6 py-3 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+              <Link
+                to="/forgot-password"
+                className="inline-block px-6 py-3 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 text-sm text-gray-600 hover:text-gray-900"
                 style={{
                   borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
                   boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)'
                 }}
               >
-                <a
-                  href="#"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Forgot your password?
-                </a>
-              </div>
+                Forgot your password?
+              </Link>
             </div>
 
           </form>
