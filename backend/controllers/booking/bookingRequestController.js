@@ -733,15 +733,16 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
         }
       }
 
-      // Create the actual booking with payment_pending status
+      // Create the actual booking - payment is already authorized from the request
+      // Use payment_held status since payment is already authorized (card hold in place)
       const [bookingResult] = await pool.execute(
       `INSERT INTO bookings (
         client_id, companion_id, booking_date, start_time, end_time,
         duration_hours, service_type, hourly_rate, base_amount, extra_amount,
         total_amount, meeting_type, meeting_location,
         meeting_location_lat, meeting_location_lon, meeting_location_place_id,
-        special_requests, status, payment_status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', NOW())`,
+        special_requests, status, payment_status, payment_intent_id, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'payment_held', 'authorized', ?, NOW())`,
       [
         request.client_id,
         companionId,
@@ -759,50 +760,18 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
         request.meeting_location_lat,
         request.meeting_location_lon,
         request.meeting_location_place_id,
-        request.special_requests
+        request.special_requests,
+        request.payment_intent_id  // Transfer existing payment intent from request
       ]
     );
 
     const bookingId = bookingResult.insertId;
 
-    // Get client email for payment
-    const [clientInfo] = await pool.execute(
-      'SELECT email FROM users WHERE id = ?',
-      [request.client_id]
-    );
-
-    if (clientInfo.length === 0) {
-      return sendBadRequest(res, 'Client not found');
-    }
-
-    // Create payment intent for authorization
-    try {
-      const stripeService = require('../../services/stripeService');
-      const paymentResult = await stripeService.authorizePayment(
-        bookingId,
-        totalAmount,
-        clientInfo[0].email,
-        {
-          description: `Booking with ${companionData[0].name || 'companion'} on ${bookingDate}`
-        }
-      );
-
-      // Update booking with payment_intent_id
-      await pool.execute(
-        'UPDATE bookings SET payment_intent_id = ? WHERE id = ?',
-        [paymentResult.paymentIntentId, bookingId]
-      );
-
-      console.log('💳 Payment intent created for custom request booking:', {
-        bookingId,
-        paymentIntentId: paymentResult.paymentIntentId
-      });
-    } catch (paymentError) {
-      // Rollback booking if payment fails
-      await pool.execute('DELETE FROM bookings WHERE id = ?', [bookingId]);
-      logger.controllerError('bookingRequestController', 'updateBookingRequestStatus', paymentError, req);
-      return sendError(res, 500, 'Failed to initialize payment. Please try again.');
-    }
+    console.log('✅ Booking created from custom request with existing payment:', {
+      bookingId,
+      paymentIntentId: request.payment_intent_id,
+      status: 'payment_held'
+    });
 
     // Update booking request with suggested time (if provided) or mark as accepted
     if (suggestedDate) {
@@ -838,14 +807,14 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
       );
     }
 
-      // Send notification to client about payment requirement
+      // Send notification to client - booking is confirmed (payment was already authorized)
       const notificationData = {
         type: 'booking',
-        title: 'Complete Payment for Your Booking',
-        message: `Your booking request was accepted! Please complete payment to confirm your booking for ${bookingDate} at ${startTime}.`,
-        actionUrl: `/client/bookings/${bookingId}`
+        title: 'Booking Confirmed!',
+        message: `Great news! Your booking request for ${bookingDate} at ${startTime} has been accepted and confirmed.`,
+        actionUrl: `/client-dashboard`
       };
-      
+
       await createNotification(
         request.client_id,
         notificationData.type,
@@ -854,7 +823,7 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
         notificationData.actionUrl
       );
 
-      console.log('✅ Booking created successfully (awaiting payment):', { bookingId, requestId });
+      console.log('✅ Booking created successfully (payment already held):', { bookingId, requestId });
 
       // Emit real-time event to client about request acceptance
       try {
@@ -867,17 +836,17 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
           startTime,
           endTime,
           totalAmount,
-          requiresPayment: true,
-          message: 'Your custom request was accepted! Complete payment to confirm.'
+          requiresPayment: false,
+          message: 'Your custom request was accepted! Your booking is confirmed.'
         });
       } catch (socketError) {
         logger.controllerError('bookingRequestController', 'updateBookingRequestStatus', socketError, req);
       }
 
-      return sendSuccess(res, { 
+      return sendSuccess(res, {
         bookingId,
-        requiresPayment: true,
-        message: 'Booking request accepted. Client needs to complete payment authorization.'
+        requiresPayment: false,
+        message: 'Booking request accepted and confirmed. Payment was already authorized.'
       }, 200, 'Booking request accepted successfully');
     } catch (error) {
       console.error('❌ Error creating booking from custom request:', {
