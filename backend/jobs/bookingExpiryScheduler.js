@@ -40,6 +40,7 @@ const processBookingExpiry = async () => {
     await processPendingExpiredBookings(connection);
     await processNoShowRefunds(connection);
     await autoCompleteMeetings(connection);
+    await cleanupOrphanedBookings(connection);
     await processExpiredCustomRequests(connection);
 
   } catch (error) {
@@ -561,7 +562,92 @@ const completeMeeting = async (connection, meeting) => {
 };
 
 /**
- * SCENARIO 4: Expire pending custom booking requests
+ * SCENARIO 4: Cleanup orphaned bookings where payment was cancelled but status is still active
+ * This handles the gap where Stripe webhook cancels payment_status but booking status isn't updated
+ * - Status is still 'pending', 'payment_held', or 'confirmed'
+ * - But payment_status is 'cancelled' or 'failed'
+ * - Meeting time has passed
+ *
+ * @param {object} connection - Database connection
+ */
+const cleanupOrphanedBookings = async (connection) => {
+  try {
+    logger.info('bookingExpiryScheduler', 'cleanupOrphanedBookings', 'Checking for orphaned bookings');
+
+    const [orphanedBookings] = await connection.execute(
+      `SELECT
+        b.id as booking_id,
+        b.status,
+        b.payment_status,
+        b.booking_date,
+        b.start_time,
+        b.client_id,
+        b.companion_id,
+        client.name as client_name,
+        companion.name as companion_name
+      FROM bookings b
+      INNER JOIN users client ON b.client_id = client.id
+      INNER JOIN users companion ON b.companion_id = companion.id
+      WHERE b.status IN ('pending', 'payment_held', 'confirmed')
+        AND b.payment_status IN ('cancelled', 'failed')
+        AND CONCAT(b.booking_date, ' ', b.start_time) < NOW()`
+    );
+
+    if (orphanedBookings.length === 0) {
+      logger.info('bookingExpiryScheduler', 'cleanupOrphanedBookings', 'No orphaned bookings found');
+      return;
+    }
+
+    logger.info('bookingExpiryScheduler', 'cleanupOrphanedBookings',
+      `Found ${orphanedBookings.length} orphaned booking(s) to clean up`);
+
+    for (const booking of orphanedBookings) {
+      try {
+        await connection.execute(
+          `UPDATE bookings
+           SET status = 'cancelled',
+               cancelled_at = NOW(),
+               cancellation_reason = 'Payment authorization expired - booking auto-cancelled'
+           WHERE id = ?`,
+          [booking.booking_id]
+        );
+
+        // Notify both parties
+        await createNotification(
+          booking.client_id,
+          'booking',
+          'Booking Cancelled',
+          `Your booking with ${booking.companion_name} on ${booking.booking_date} was cancelled (payment expired). Any held funds have been released.`,
+          '/client-dashboard'
+        );
+
+        await createNotification(
+          booking.companion_id,
+          'booking',
+          'Booking Cancelled',
+          `A booking from ${booking.client_name} on ${booking.booking_date} was cancelled (payment expired).`,
+          '/companion-dashboard'
+        );
+
+        logger.info('bookingExpiryScheduler', 'cleanupOrphanedBookings',
+          `Cleaned up orphaned booking ${booking.booking_id} (was ${booking.status}/${booking.payment_status})`);
+
+      } catch (bookingError) {
+        logger.error('bookingExpiryScheduler', 'cleanupOrphanedBookings', bookingError, {
+          bookingId: booking.booking_id,
+          message: 'Failed to cleanup orphaned booking'
+        });
+      }
+    }
+  } catch (error) {
+    logger.error('bookingExpiryScheduler', 'cleanupOrphanedBookings', error, {
+      message: 'Error cleaning up orphaned bookings'
+    });
+  }
+};
+
+/**
+ * SCENARIO 5: Expire pending custom booking requests
  * - Status = 'pending' in booking_requests table
  * - Either expires_at has passed OR requested meeting time has passed
  * - Cancel Stripe payment authorization and notify client
@@ -690,6 +776,7 @@ module.exports = {
   processPendingExpiredBookings,
   processNoShowRefunds,
   autoCompleteMeetings,
+  cleanupOrphanedBookings,
   processExpiredCustomRequests
 };
 

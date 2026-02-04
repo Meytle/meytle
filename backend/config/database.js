@@ -1266,7 +1266,7 @@ const initializeDatabase = async () => {
       );
       if (Number(count_cancelled_by) === 0) {
         await promisePool.query(
-          `ALTER TABLE bookings ADD COLUMN cancelled_by ENUM('client', 'companion') NULL`
+          `ALTER TABLE bookings ADD COLUMN cancelled_by ENUM('client', 'companion', 'system') NULL`
         );
         dbLog.info('initializeDatabase', 'Added cancelled_by column to bookings', {});
       }
@@ -1371,7 +1371,7 @@ const initializeDatabase = async () => {
       );
       if (Number(count_cancelled_by) === 0) {
         await promisePool.query(
-          `ALTER TABLE booking_requests ADD COLUMN cancelled_by ENUM('client', 'companion') NULL`
+          `ALTER TABLE booking_requests ADD COLUMN cancelled_by ENUM('client', 'companion', 'system') NULL`
         );
         dbLog.info('initializeDatabase', 'Added cancelled_by column to booking_requests', {});
       }
