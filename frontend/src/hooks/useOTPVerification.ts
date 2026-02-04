@@ -80,9 +80,9 @@ export const useOTPVerification = (bookings: Booking[], userRole: 'client' | 'co
       try {
         const now = new Date();
 
-        // Find confirmed bookings that start within the next minute
+        // Find confirmed/payment_held bookings that start within the next minute
         const bookingNeedingVerification = currentBookings.find((booking) => {
-          if (booking.status !== 'confirmed') return false;
+          if (booking.status !== 'confirmed' && booking.status !== 'payment_held') return false;
           if (!booking.verificationRequired) return false;
 
           // Parse booking start time (stored in UTC)

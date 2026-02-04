@@ -59,7 +59,7 @@ interface BookingData {
   meetingType?: MeetingType;
 
   // Booking metadata
-  bookingStatus?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  bookingStatus?: 'pending' | 'payment_held' | 'confirmed' | 'cancelled' | 'completed';
   paymentStatus?: 'unpaid' | 'paid' | 'refunded';
   bookingReference?: string;
 }

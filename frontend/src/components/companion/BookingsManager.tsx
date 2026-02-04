@@ -58,9 +58,13 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
     if (filter === 'all' || filter === 'approvals') {
       return safeAllBookings;
     }
-    // Include meeting_started with confirmed (it's an active meeting)
+    // Include payment_held and meeting_started with confirmed (payment authorized = confirmed)
     if (filter === 'confirmed') {
-      return safeAllBookings.filter(booking => booking.status === 'confirmed' || booking.status === 'meeting_started');
+      return safeAllBookings.filter(booking =>
+        booking.status === 'confirmed' ||
+        booking.status === 'payment_held' ||
+        booking.status === 'meeting_started'
+      );
     }
     return safeAllBookings.filter(booking => booking.status === filter);
   }, [safeAllBookings, filter]);
@@ -232,32 +236,38 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
     try {
       console.log('🔍 fetchPendingApprovals: Starting to fetch pending approvals and requests');
       setIsLoadingApprovals(true);
-      
-      // Fetch both regular bookings AND custom booking requests
-      const [bookingsResponse, requestsResponse] = await Promise.all([
-        bookingApi.getPendingBookingsForCompanion(),
-        bookingApi.getBookingRequests({ role: 'companion', status: 'pending' })
-      ]);
-      
-      // Handle bookings response
-      const approvalsData: Booking[] = Array.isArray(bookingsResponse) 
-        ? bookingsResponse 
-        : (bookingsResponse as any).pendingBookings || [];
-      
-      // Handle requests response
-      const requestsData = Array.isArray(requestsResponse) ? requestsResponse : [];
-      
+
+      // Fetch independently so one failure doesn't block the other
+      let approvalsData: Booking[] = [];
+      let requestsData: any[] = [];
+
+      // Fetch regular pending bookings
+      try {
+        const bookingsResponse = await bookingApi.getPendingBookingsForCompanion();
+        approvalsData = Array.isArray(bookingsResponse)
+          ? bookingsResponse
+          : (bookingsResponse as any).pendingBookings || [];
+      } catch (err) {
+        console.error('Failed to fetch pending bookings:', err);
+      }
+
+      // Fetch custom booking requests
+      try {
+        const requestsResponse = await bookingApi.getBookingRequests({ role: 'companion', status: 'pending' });
+        requestsData = Array.isArray(requestsResponse) ? requestsResponse : (requestsResponse?.requests || []);
+      } catch (err) {
+        console.error('Failed to fetch booking requests:', err);
+      }
+
       console.log('📥 fetchPendingApprovals: Received data', {
         bookingsCount: approvalsData.length,
         requestsCount: requestsData.length
       });
-      
+
       setPendingApprovals(approvalsData);
       setBookingRequests(requestsData);
-      console.log('✅ fetchPendingApprovals: Data set successfully');
     } catch (error: any) {
       console.error('❌ fetchPendingApprovals: Error fetching pending approvals', error);
-      toast.error('Failed to load pending approvals');
     } finally {
       setIsLoadingApprovals(false);
     }
@@ -374,6 +384,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
+      payment_held: { color: 'bg-green-100 text-green-800', label: 'Confirmed' },
       confirmed: { color: 'bg-green-100 text-green-800', label: 'Confirmed' },
       meeting_started: { color: 'bg-purple-100 text-purple-800', label: 'In Progress' },
       cancelled: { color: 'bg-red-100 text-red-800', label: 'Cancelled' },
@@ -468,6 +479,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
   const canUpdateStatus = (currentStatus: string, newStatus: string) => {
     const validTransitions: { [key: string]: string[] } = {
       pending: ['confirmed', 'cancelled'],
+      payment_held: ['completed', 'cancelled', 'no_show'], // Same as confirmed
       confirmed: ['completed', 'cancelled', 'no_show'],
       cancelled: [],
       completed: [],
@@ -657,7 +669,8 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
           console.log('🔍 BookingsManager: Rendering approvals view', {
             isLoadingApprovals,
             pendingApprovalsLength: safePendingApprovals.length,
-            pendingApprovals: safePendingApprovals
+            bookingRequestsLength: bookingRequests.length,
+            bookingRequests
           });
           return isLoadingApprovals ? (
             <div className="flex justify-center py-12">
@@ -1054,7 +1067,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
 
                         {/* Action Buttons */}
                         <div className="flex gap-2 flex-wrap">
-                          {(booking.status === 'confirmed' || booking.status === 'meeting_started') && (
+                          {(booking.status === 'confirmed' || booking.status === 'payment_held' || booking.status === 'meeting_started') && (
                             <button
                               onClick={() => handleOpenChat(booking)}
                               className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -1063,7 +1076,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
                               Open Chat
                             </button>
                           )}
-                          {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                          {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'payment_held') && (
                             <button
                               onClick={() => handleCancelBooking(booking)}
                               className="flex items-center gap-2 px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
@@ -1233,7 +1246,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
 
               {/* Action Buttons */}
               <div className="flex gap-2 flex-wrap">
-                {(booking.status === 'confirmed' || booking.status === 'meeting_started') && (
+                {(booking.status === 'confirmed' || booking.status === 'payment_held' || booking.status === 'meeting_started') && (
                   <button
                     onClick={() => handleOpenChat(booking)}
                     className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -1242,7 +1255,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
                     Open Chat
                   </button>
                 )}
-                {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'payment_held') && (
                   <button
                     onClick={() => handleCancelBooking(booking)}
                     className="flex items-center gap-2 px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
@@ -1268,7 +1281,7 @@ const BookingsManager = ({ className = '', initialFilter = 'all', refreshTrigger
         onConfirm={handleConfirmCancellation}
         userRole="companion"
         bookingType="booking"
-        bookingStatus={selectedBooking?.status === 'confirmed' ? 'confirmed' : 'pending'}
+        bookingStatus={(selectedBooking?.status === 'confirmed' || selectedBooking?.status === 'payment_held') ? 'confirmed' : 'pending'}
         isSubmitting={isCancelling}
       />
 

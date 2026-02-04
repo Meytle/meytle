@@ -338,6 +338,7 @@ const ClientDashboard = () => {
     switch (status) {
       case 'pending':
         return <FaClock className="text-yellow-500" />;
+      case 'payment_held':
       case 'confirmed':
         return <FaCheckCircle className="text-green-500" />;
       case 'meeting_started':
@@ -355,6 +356,7 @@ const ClientDashboard = () => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
+      case 'payment_held':
       case 'confirmed':
         return 'bg-green-100 text-green-800';
       case 'meeting_started':
@@ -372,6 +374,7 @@ const ClientDashboard = () => {
     switch (status) {
       case 'pending':
         return 'Awaiting Approval';
+      case 'payment_held':
       case 'confirmed':
         return 'Approved';
       case 'meeting_started':
@@ -559,28 +562,33 @@ const ClientDashboard = () => {
   };
 
   // Helper functions for filtering bookings
-  const confirmedBookings = safeBookings.filter(b => b.status === 'confirmed' || b.status === 'meeting_started');
+  // payment_held = payment authorized, treated same as confirmed
+  const confirmedBookings = safeBookings.filter(b =>
+    b.status === 'confirmed' || b.status === 'payment_held' || b.status === 'meeting_started'
+  );
   const completedBookings = safeBookings.filter(b => b.status === 'completed');
   const cancelledBookings = safeBookings.filter(b => b.status === 'cancelled');
-  
+
   // Pending bookings for overview section only
   const pendingBookings = safeBookings.filter(b => b.status === 'pending');
-  
+
   const pendingRequests = safeBookingRequests.filter(r => r.status === 'pending');
-  
+
   // Recent bookings: show most recent bookings (excluding pending) - same as companion dashboard
   // Sort by date descending (most recent first), then take first 2 for preview
   const recentBookings = safeBookings
     .filter(b => b.status !== 'pending') // Exclude pending as they're shown separately
     .sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
-  
+
   const recentBookingsPreview = recentBookings.slice(0, 2);
-  
+
   const getFilteredBookings = () => {
     if (bookingFilter === 'all') return safeBookings;
-    // Include meeting_started with confirmed (it's an active meeting)
+    // Include payment_held and meeting_started with confirmed (payment authorized = confirmed)
     if (bookingFilter === 'confirmed') {
-      return safeBookings.filter(b => b.status === 'confirmed' || b.status === 'meeting_started');
+      return safeBookings.filter(b =>
+        b.status === 'confirmed' || b.status === 'payment_held' || b.status === 'meeting_started'
+      );
     }
     return safeBookings.filter(b => b.status === bookingFilter);
   };
@@ -1019,13 +1027,15 @@ const ClientDashboard = () => {
                           <div className="flex flex-col items-end gap-1">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                               booking.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                              booking.status === 'confirmed' || booking.status === 'payment_held' ? 'bg-blue-100 text-blue-700' :
                               booking.status === 'meeting_started' ? 'bg-purple-100 text-purple-700' :
                               booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                               booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                               'bg-gray-100 text-gray-700'
                             }`}>
-                              {booking.status === 'meeting_started' ? 'In Progress' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                              {booking.status === 'meeting_started' ? 'In Progress' :
+                               booking.status === 'payment_held' ? 'Confirmed' :
+                               booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                             </span>
                             <span className="text-sm font-bold text-gray-900">${(booking.totalAmount || 0).toFixed(2)}</span>
                           </div>
@@ -1129,8 +1139,8 @@ const ClientDashboard = () => {
                   <div className="flex justify-between items-center pb-3 border-b border-gray-100">
                     <span className="text-gray-600 text-sm">Upcoming</span>
                     <span className="text-2xl font-bold text-[#312E81]">
-                      {safeBookings.filter(b => 
-                        (b.status === 'confirmed' || b.status === 'pending') && 
+                      {safeBookings.filter(b =>
+                        (b.status === 'confirmed' || b.status === 'payment_held' || b.status === 'pending') &&
                         isBookingUpcoming(b)
                       ).length}
                     </span>
@@ -1387,7 +1397,7 @@ const ClientDashboard = () => {
 
                                   {/* Action Buttons */}
                                   <div className="flex gap-2 flex-wrap">
-                                    {(booking.status === 'confirmed' || booking.status === 'meeting_started') && (
+                                    {(booking.status === 'confirmed' || booking.status === 'payment_held' || booking.status === 'meeting_started') && (
                                       <button
                                         onClick={() => handleOpenChat(booking)}
                                         className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -1396,7 +1406,7 @@ const ClientDashboard = () => {
                                         Open Chat
                                       </button>
                                     )}
-                                    {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                    {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'payment_held') && (
                                       <button
                                         onClick={() => handleCancelBooking(booking)}
                                         className="flex items-center gap-2 px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
@@ -1486,7 +1496,7 @@ const ClientDashboard = () => {
 
                               {/* Action Buttons */}
                               <div className="flex gap-2 flex-wrap">
-                                {booking.status === 'confirmed' && (
+                                {(booking.status === 'confirmed' || booking.status === 'payment_held') && (
                                   <button
                                     onClick={() => handleOpenChat(booking)}
                                     className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -1495,7 +1505,7 @@ const ClientDashboard = () => {
                                     Open Chat
                                   </button>
                                 )}
-                                {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'payment_held') && (
                                   <button
                                     onClick={() => handleCancelBooking(booking)}
                                     className="flex items-center gap-2 px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
@@ -1588,7 +1598,7 @@ const ClientDashboard = () => {
 
                       {/* Action Buttons - Bottom Left */}
                       <div className="flex gap-2 flex-wrap">
-                        {(booking.status === 'confirmed' || booking.status === 'meeting_started') && (
+                        {(booking.status === 'confirmed' || booking.status === 'payment_held' || booking.status === 'meeting_started') && (
                           <button
                             onClick={() => handleOpenChat(booking)}
                             className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -1597,7 +1607,7 @@ const ClientDashboard = () => {
                             Open Chat
                           </button>
                         )}
-                        {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                        {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'payment_held') && (
                           <button
                             onClick={() => handleCancelBooking(booking)}
                             className="flex items-center gap-2 px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm"
@@ -1756,7 +1766,7 @@ const ClientDashboard = () => {
         onConfirm={handleConfirmCancellation}
         userRole="client"
         bookingType={selectedBooking ? 'booking' : 'request'}
-        bookingStatus={selectedBooking?.status === 'confirmed' ? 'confirmed' : 'pending'}
+        bookingStatus={(selectedBooking?.status === 'confirmed' || selectedBooking?.status === 'payment_held') ? 'confirmed' : 'pending'}
         isSubmitting={isCancelling}
       />
 

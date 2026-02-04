@@ -803,7 +803,7 @@ const getDisputedBookings = async (req, res) => {
       JOIN users client ON b.client_id = client.id
       JOIN users companion ON b.companion_id = companion.id
       LEFT JOIN service_categories sc ON b.service_category_id = sc.id
-      WHERE b.status = 'confirmed'
+      WHERE (b.status = 'confirmed' OR b.status = 'payment_held')
         AND b.payment_intent_id IS NOT NULL
         AND b.otp_verified_at IS NULL
         AND CONCAT(b.booking_date, ' ', b.end_time) < NOW()
@@ -828,7 +828,7 @@ const getDisputedBookings = async (req, res) => {
     let countQuery = `
       SELECT COUNT(*) as total
       FROM bookings b
-      WHERE b.status = 'confirmed'
+      WHERE (b.status = 'confirmed' OR b.status = 'payment_held')
         AND b.payment_intent_id IS NOT NULL
         AND b.otp_verified_at IS NULL
         AND CONCAT(b.booking_date, ' ', b.end_time) < NOW()
@@ -1297,7 +1297,7 @@ const getBookingStats = async (req, res) => {
       SELECT
         COUNT(*) as total_bookings,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
+        SUM(CASE WHEN status = 'confirmed' OR status = 'payment_held' THEN 1 ELSE 0 END) as confirmed,
         SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
         SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) as no_show,

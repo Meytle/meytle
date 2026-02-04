@@ -136,9 +136,8 @@ const startServer = async () => {
       throw new Error('MySQL server connection failed. Make sure MySQL is running.');
     }
 
-    // Initialize database schema (this creates the database if it doesn't exist)
-    // ⚠️ TEMPORARILY DISABLED: Requires SUPER privilege to create functions/procedures
-    // Database schema already exists, so initialization is not needed on every restart
+    // Initialize database schema (creates tables if they don't exist)
+    // Only needed for fresh setups - production DB already exists
     // await initializeDatabase();
 
     // Initialize schedulers

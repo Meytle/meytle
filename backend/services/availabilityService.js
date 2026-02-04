@@ -104,7 +104,7 @@ const calculateAvailableSlots = async (companionId, date) => {
     `SELECT start_time, end_time
      FROM bookings
      WHERE companion_id = ? AND booking_date = ?
-     AND status IN ('pending', 'confirmed')`,
+     AND status IN ('pending', 'payment_held', 'confirmed')`,
     [companionId, date]
   );
 
@@ -237,7 +237,7 @@ const getAvailabilityForDateRange = async (companionId, startDate, endDate) => {
     FROM bookings
     WHERE companion_id = ?
       AND booking_date BETWEEN ? AND ?
-      AND status IN ('pending', 'confirmed')`,
+      AND status IN ('pending', 'payment_held', 'confirmed')`,
     [companionId, startDate, endDate]
   );
 
@@ -374,7 +374,7 @@ const findAvailableCompanions = async (date, startTime, endTime) => {
          SELECT 1 FROM bookings b
          WHERE b.companion_id = ca.companion_id
            AND b.booking_date = ?
-           AND b.status IN ('pending', 'confirmed')
+           AND b.status IN ('pending', 'payment_held', 'confirmed')
            AND ((b.start_time <= ? AND b.end_time > ?) 
                 OR (b.start_time < ? AND b.end_time >= ?))
        )`,

@@ -68,8 +68,8 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    // Only allow messaging for confirmed bookings
-    if (booking.status !== 'confirmed') {
+    // Only allow messaging for confirmed or payment_held bookings
+    if (booking.status !== 'confirmed' && booking.status !== 'payment_held') {
       return res.status(400).json({
         status: 'error',
         message: 'Messages can only be sent for confirmed bookings'
@@ -224,8 +224,8 @@ const getMessages = async (req, res) => {
       });
     }
 
-    // Check if chat is available (3 hours before meeting until meeting ends) for confirmed bookings
-    if (booking.status === 'confirmed') {
+    // Check if chat is available (3 hours before meeting until meeting ends) for confirmed/payment_held bookings
+    if (booking.status === 'confirmed' || booking.status === 'payment_held') {
       // booking_date is DATE type from MySQL (YYYY-MM-DD string), times are in UTC
       const bookingDateStr = booking.booking_date instanceof Date
         ? `${booking.booking_date.getFullYear()}-${String(booking.booking_date.getMonth() + 1).padStart(2, '0')}-${String(booking.booking_date.getDate()).padStart(2, '0')}`

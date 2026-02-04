@@ -287,7 +287,7 @@ const getAvailableTimeSlots = asyncHandler(async (req, res) => {
     `SELECT start_time, end_time
      FROM bookings
      WHERE companion_id = ? AND booking_date = ?
-     AND status IN ('pending', 'confirmed')`,
+     AND status IN ('pending', 'payment_held', 'confirmed')`,
     [companionId, date]
   );
 
@@ -385,7 +385,7 @@ const getCompanionBookingsByDateRange = asyncHandler(async (req, res) => {
     `SELECT id, booking_date, start_time, end_time, status
      FROM bookings
      WHERE companion_id = ? AND booking_date BETWEEN ? AND ?
-     AND status IN ('pending', 'confirmed')
+     AND status IN ('pending', 'payment_held', 'confirmed')
      ORDER BY booking_date ASC, start_time ASC`,
     [companionId, startDate, endDate]
   );
@@ -507,7 +507,7 @@ const getCompanionAvailabilityForDateRange = asyncHandler(async (req, res) => {
     FROM bookings
     WHERE companion_id = ?
       AND booking_date BETWEEN ? AND ?
-      AND status IN ('pending', 'confirmed')`,
+      AND status IN ('pending', 'payment_held', 'confirmed')`,
     [companionId, startDate, endDate]
   );
 

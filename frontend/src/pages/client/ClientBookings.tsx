@@ -226,6 +226,7 @@ const ClientBookings = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
+      case 'payment_held':
       case 'confirmed':
         return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'pending':
@@ -241,6 +242,7 @@ const ClientBookings = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
+      case 'payment_held':
       case 'confirmed':
         return <FaCheckCircle />;
       case 'pending':
@@ -256,6 +258,7 @@ const ClientBookings = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status.toLowerCase()) {
+      case 'payment_held':
       case 'confirmed':
         return 'Confirmed';
       case 'pending':
@@ -297,9 +300,12 @@ const ClientBookings = () => {
   };
 
   // Filter bookings based on selected tab
+  // Include payment_held with confirmed (payment authorized = confirmed)
   const filteredBookings = filter === 'all'
     ? sortBookingsByPriority(bookings)
-    : sortBookingsByPriority(bookings.filter(b => b.status === filter));
+    : filter === 'confirmed'
+      ? sortBookingsByPriority(bookings.filter(b => b.status === 'confirmed' || b.status === 'payment_held'))
+      : sortBookingsByPriority(bookings.filter(b => b.status === filter));
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
@@ -560,7 +566,7 @@ const ClientBookings = () => {
                         )}
 
                         <div className="flex gap-2 flex-wrap">
-                          {booking.status === 'confirmed' && (
+                          {(booking.status === 'confirmed' || booking.status === 'payment_held') && (
                             <button
                               onClick={() => handleOpenChat(booking)}
                               className="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-1"
@@ -569,7 +575,7 @@ const ClientBookings = () => {
                               Open Chat
                             </button>
                           )}
-                          {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                          {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'payment_held') && (
                             <button
                               onClick={() => handleCancelBooking(booking)}
                               className="text-xs px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors flex items-center gap-1"
@@ -608,7 +614,7 @@ const ClientBookings = () => {
         onConfirm={handleConfirmCancellation}
         userRole="client"
         bookingType={selectedBooking ? 'booking' : 'request'}
-        bookingStatus={selectedBooking?.status === 'confirmed' ? 'confirmed' : 'pending'}
+        bookingStatus={(selectedBooking?.status === 'confirmed' || selectedBooking?.status === 'payment_held') ? 'confirmed' : 'pending'}
         isSubmitting={isCancelling}
       />
 

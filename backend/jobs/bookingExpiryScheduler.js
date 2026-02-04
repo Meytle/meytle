@@ -40,6 +40,7 @@ const processBookingExpiry = async () => {
     await processPendingExpiredBookings(connection);
     await processNoShowRefunds(connection);
     await autoCompleteMeetings(connection);
+    await processExpiredCustomRequests(connection);
 
   } catch (error) {
     logger.error('bookingExpiryScheduler', 'processBookingExpiry', error, {
@@ -155,7 +156,7 @@ const processNoShowRefunds = async (connection) => {
       INNER JOIN users client ON b.client_id = client.id
       INNER JOIN users companion ON b.companion_id = companion.id
       LEFT JOIN booking_verification bv ON b.id = bv.booking_id
-      WHERE b.status = 'confirmed'
+      WHERE (b.status = 'confirmed' OR b.status = 'payment_held')
         AND b.payment_status = 'authorized'
         AND b.payment_intent_id IS NOT NULL
         AND b.verification_required = TRUE
@@ -560,6 +561,108 @@ const completeMeeting = async (connection, meeting) => {
 };
 
 /**
+ * SCENARIO 4: Expire pending custom booking requests
+ * - Status = 'pending' in booking_requests table
+ * - Either expires_at has passed OR requested meeting time has passed
+ * - Cancel Stripe payment authorization and notify client
+ *
+ * @param {object} connection - Database connection
+ */
+const processExpiredCustomRequests = async (connection) => {
+  try {
+    logger.info('bookingExpiryScheduler', 'processExpiredCustomRequests', 'Checking for expired custom requests');
+
+    // Find pending requests that have expired (expires_at passed) or meeting time has passed
+    const [expiredRequests] = await connection.execute(
+      `SELECT
+        br.id,
+        br.client_id,
+        br.companion_id,
+        br.payment_intent_id,
+        br.requested_date,
+        br.start_time,
+        br.expires_at,
+        client.name as client_name,
+        companion.name as companion_name
+      FROM booking_requests br
+      INNER JOIN users client ON br.client_id = client.id
+      INNER JOIN users companion ON br.companion_id = companion.id
+      WHERE br.status = 'pending'
+        AND (
+          br.expires_at < NOW()
+          OR (br.start_time IS NOT NULL AND CONCAT(br.requested_date, ' ', br.start_time) < NOW())
+        )`
+    );
+
+    if (expiredRequests.length === 0) {
+      logger.info('bookingExpiryScheduler', 'processExpiredCustomRequests', 'No expired custom requests found');
+      return;
+    }
+
+    logger.info('bookingExpiryScheduler', 'processExpiredCustomRequests',
+      `Found ${expiredRequests.length} expired custom request(s)`);
+
+    for (const request of expiredRequests) {
+      try {
+        // Cancel Stripe payment authorization
+        if (request.payment_intent_id) {
+          try {
+            const pi = await stripeService.retrievePaymentIntent(request.payment_intent_id);
+            if (pi.status === 'requires_capture') {
+              await stripeService.cancelPaymentIntent(request.payment_intent_id);
+            }
+          } catch (stripeErr) {
+            logger.error('bookingExpiryScheduler', 'processExpiredCustomRequests', stripeErr, {
+              requestId: request.id, message: 'Failed to cancel Stripe authorization'
+            });
+          }
+        }
+
+        // Mark request as expired
+        await connection.execute(
+          `UPDATE booking_requests
+           SET status = 'expired',
+               payment_status = 'refunded',
+               responded_at = NOW()
+           WHERE id = ?`,
+          [request.id]
+        );
+
+        // Notify client
+        await createNotification(
+          request.client_id,
+          'booking',
+          'Custom Request Expired',
+          `Your custom booking request with ${request.companion_name} for ${request.requested_date} has expired. Your payment has been refunded.`,
+          '/client-dashboard'
+        );
+
+        // Notify companion
+        await createNotification(
+          request.companion_id,
+          'booking',
+          'Custom Request Expired',
+          `A custom booking request from ${request.client_name} for ${request.requested_date} has expired without response.`,
+          '/companion-dashboard'
+        );
+
+        logger.info('bookingExpiryScheduler', 'processExpiredCustomRequests',
+          `Expired custom request ${request.id}`);
+
+      } catch (requestError) {
+        logger.error('bookingExpiryScheduler', 'processExpiredCustomRequests', requestError, {
+          requestId: request.id, message: 'Failed to expire custom request'
+        });
+      }
+    }
+  } catch (error) {
+    logger.error('bookingExpiryScheduler', 'processExpiredCustomRequests', error, {
+      message: 'Error processing expired custom requests'
+    });
+  }
+};
+
+/**
  * Initialize the booking expiry scheduler
  * Runs every 10 minutes
  */
@@ -586,6 +689,7 @@ module.exports = {
   processBookingExpiry,
   processPendingExpiredBookings,
   processNoShowRefunds,
-  autoCompleteMeetings
+  autoCompleteMeetings,
+  processExpiredCustomRequests
 };
 

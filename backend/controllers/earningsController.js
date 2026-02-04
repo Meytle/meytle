@@ -56,8 +56,8 @@ const getEarningsSummary = asyncHandler(async (req, res) => {
        COUNT(*) as pending_bookings
      FROM bookings
      WHERE companion_id = ?
-       AND status = 'confirmed'
-       AND payment_status IN ('pending', 'paid')
+       AND (status = 'confirmed' OR status = 'payment_held')
+       AND payment_status IN ('pending', 'paid', 'authorized')
        AND payment_released_at IS NULL`,
     [companionId]
   );
@@ -243,7 +243,7 @@ const getUpcomingPayments = asyncHandler(async (req, res) => {
      LEFT JOIN client_verifications cv ON client.id = cv.user_id
      LEFT JOIN service_categories sc ON b.service_category_id = sc.id
      WHERE b.companion_id = ?
-       AND b.status IN ('pending', 'confirmed')
+       AND b.status IN ('pending', 'payment_held', 'confirmed')
        AND b.payment_status != 'awaiting_payment'
        AND b.booking_date >= CURDATE()
      ORDER BY b.booking_date ASC, b.start_time ASC

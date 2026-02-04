@@ -711,7 +711,7 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
       const [conflictingBookings] = await pool.execute(
         `SELECT id, start_time, end_time FROM bookings
          WHERE companion_id = ? AND booking_date = ?
-         AND status IN ('pending', 'confirmed')`,
+         AND status IN ('pending', 'payment_held', 'confirmed')`,
         [companionId, bookingDate]
       );
 
@@ -806,6 +806,58 @@ const updateBookingRequestStatus = asyncHandler(async (req, res) => {
         [status, bookingId, companionResponse || null, requestId]
       );
     }
+
+      // Auto-reject other pending custom requests that conflict with this booking
+      try {
+        const [conflictingRequests] = await pool.execute(
+          `SELECT id, client_id, payment_intent_id, requested_date, start_time, end_time
+           FROM booking_requests
+           WHERE companion_id = ? AND id != ? AND status = 'pending'
+             AND requested_date = ?
+             AND start_time IS NOT NULL AND end_time IS NOT NULL
+             AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))`,
+          [companionId, requestId, bookingDate, startTime, startTime, endTime, endTime]
+        );
+
+        for (const conflicting of conflictingRequests) {
+          // Cancel Stripe payment authorization
+          if (conflicting.payment_intent_id) {
+            try {
+              const stripeService = require('../../services/stripeService');
+              const pi = await stripeService.retrievePaymentIntent(conflicting.payment_intent_id);
+              if (pi.status === 'requires_capture') {
+                await stripeService.cancelPaymentIntent(conflicting.payment_intent_id);
+              }
+            } catch (stripeErr) {
+              logger.controllerError('bookingRequestController', 'autoRejectConflicting', stripeErr, req);
+            }
+          }
+
+          // Mark request as rejected
+          await pool.execute(
+            `UPDATE booking_requests
+             SET status = 'rejected',
+                 companion_response = 'Auto-rejected: time slot is no longer available',
+                 responded_at = NOW()
+             WHERE id = ?`,
+            [conflicting.id]
+          );
+
+          // Notify the client
+          await createNotification(
+            conflicting.client_id,
+            'booking',
+            'Booking Request Unavailable',
+            `Your custom request for ${bookingDate} was declined because the time slot is no longer available. Your payment has been refunded.`,
+            '/client-dashboard'
+          );
+
+          logger.controllerInfo('bookingRequestController', 'autoRejectConflicting',
+            `Auto-rejected conflicting request ${conflicting.id}`, { requestId: conflicting.id });
+        }
+      } catch (autoRejectError) {
+        logger.controllerError('bookingRequestController', 'autoRejectConflicting', autoRejectError, req);
+      }
 
       // Send notification to client - booking is confirmed (payment was already authorized)
       const notificationData = {

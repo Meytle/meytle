@@ -99,7 +99,7 @@ const submitOTP = async (req, res) => {
     }
 
     // Check booking status
-    if (booking.status !== 'confirmed') {
+    if (booking.status !== 'confirmed' && booking.status !== 'payment_held') {
       await connection.rollback();
       return res.status(400).json({
         status: 'error',

@@ -327,7 +327,7 @@ const EarningsTab = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                          {payment.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                          {(payment.status === 'confirmed' || payment.status === 'payment_held') ? 'Confirmed' : 'Pending'}
                         </span>
                       </td>
                     </tr>

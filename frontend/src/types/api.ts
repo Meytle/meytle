@@ -13,7 +13,7 @@ export interface ApiBooking {
   end_time: string;
   duration_hours: number;
   total_amount: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'pending' | 'payment_held' | 'confirmed' | 'meeting_started' | 'cancelled' | 'completed' | 'no_show';
   special_requests?: string;
   meeting_location?: string;
   meeting_type?: string;

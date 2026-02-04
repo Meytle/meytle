@@ -14,7 +14,7 @@ interface CancellationModalProps {
   userRole: 'client' | 'companion';
   bookingType?: 'booking' | 'request';
   isSubmitting?: boolean;
-  bookingStatus?: 'pending' | 'confirmed';
+  bookingStatus?: 'pending' | 'payment_held' | 'confirmed';
 }
 
 const CancellationModal: React.FC<CancellationModalProps> = ({
@@ -166,7 +166,7 @@ const CancellationModal: React.FC<CancellationModalProps> = ({
           )}
 
           {/* Warning message */}
-          {bookingStatus === 'confirmed' ? (
+          {(bookingStatus === 'confirmed' || bookingStatus === 'payment_held') ? (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">

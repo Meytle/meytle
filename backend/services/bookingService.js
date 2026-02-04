@@ -75,11 +75,11 @@ const checkAvailabilityConflicts = async (companionId, date, startTime, endTime,
     FROM bookings
     WHERE companion_id = ? AND booking_date = ?
     AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))
-    AND status IN ('pending', 'confirmed')
+    AND status IN ('pending', 'payment_held', 'confirmed')
   `;
-  
+
   const params = [companionId, date, startTime, startTime, endTime, endTime];
-  
+
   if (excludeBookingId) {
     query += ' AND id != ?';
     params.push(excludeBookingId);

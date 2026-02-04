@@ -276,9 +276,9 @@ const findConflicts = async (companionId, date, startTime, endTime, excludeBooki
     FROM bookings
     WHERE companion_id = ? AND booking_date = ?
     AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))
-    AND status IN ('pending', 'confirmed')
+    AND status IN ('pending', 'payment_held', 'confirmed')
   `;
-  
+
   const params = [companionId, date, startTime, startTime, endTime, endTime];
   
   if (excludeBookingId) {
@@ -298,7 +298,7 @@ const findConflicts = async (companionId, date, startTime, endTime, excludeBooki
  * @param {Array} statuses - Array of statuses to include
  * @returns {Promise<Array>} Array of bookings
  */
-const findByDateRange = async (companionId, startDate, endDate, statuses = ['pending', 'confirmed']) => {
+const findByDateRange = async (companionId, startDate, endDate, statuses = ['pending', 'payment_held', 'confirmed']) => {
   const placeholders = statuses.map(() => '?').join(',');
   
   const [bookings] = await pool.execute(
@@ -391,7 +391,7 @@ const getUpcoming = async (userId, role, limit = 5) => {
      JOIN users u ON u.id = ${role === 'client' ? 'b.companion_id' : 'b.client_id'}
      WHERE b.${roleColumn} = ?
        AND b.booking_date >= ?
-       AND b.status IN ('pending', 'confirmed')
+       AND b.status IN ('pending', 'payment_held', 'confirmed')
      ORDER BY b.booking_date ASC, b.start_time ASC
      LIMIT ?`,
     [userId, today, limit]

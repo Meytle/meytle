@@ -40,7 +40,7 @@ async function checkExpiredVerifications() {
         bv.verification_deadline
       FROM bookings b
       INNER JOIN booking_verification bv ON b.id = bv.booking_id
-      WHERE b.status = 'confirmed'
+      WHERE (b.status = 'confirmed' OR b.status = 'payment_held')
         AND bv.otp_sent_at IS NOT NULL
         AND NOT (bv.client_verified_at IS NOT NULL AND bv.companion_verified_at IS NOT NULL)
         AND NOW() > COALESCE(

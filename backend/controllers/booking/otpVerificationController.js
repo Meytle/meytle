@@ -217,8 +217,8 @@ const verifyOTP = async (req, res) => {
       companionVerifiedAt: booking.companion_verified_at
     });
 
-    // Check if booking is in confirmed status
-    if (booking.status !== 'confirmed') {
+    // Check if booking is in confirmed or payment_held status
+    if (booking.status !== 'confirmed' && booking.status !== 'payment_held') {
       await connection.rollback();
       return sendBadRequest(res, 'Booking is not in confirmed status');
     }
@@ -753,7 +753,7 @@ const requestExtension = async (req, res) => {
     const isClient = userId === booking.client_id;
 
     // Validation checks
-    if (booking.status !== 'confirmed') {
+    if (booking.status !== 'confirmed' && booking.status !== 'payment_held') {
       await connection.rollback();
       return sendBadRequest(res, 'Booking is not in confirmed status');
     }

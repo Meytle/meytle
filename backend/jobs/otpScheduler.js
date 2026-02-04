@@ -47,7 +47,7 @@ const processOTPGeneration = async () => {
       INNER JOIN users client ON b.client_id = client.id
       INNER JOIN users companion ON b.companion_id = companion.id
       LEFT JOIN booking_verification bv ON b.id = bv.booking_id
-      WHERE b.status = 'confirmed'
+      WHERE (b.status = 'confirmed' OR b.status = 'payment_held')
         AND b.verification_required = TRUE
         AND bv.booking_id IS NULL
         AND TIMESTAMPDIFF(MINUTE, NOW(), CONCAT(b.booking_date, ' ', b.start_time)) BETWEEN 5 AND 60`

@@ -39,11 +39,11 @@ export const isBookingPastEndTime = (bookingDate: string, endTime: string): bool
 
 /**
  * Check if a booking should be auto-completed
- * Confirmed or meeting_started bookings past their end time should be auto-completed
+ * Confirmed, payment_held, or meeting_started bookings past their end time should be auto-completed
  */
 export const shouldAutoComplete = (booking: Booking): boolean => {
   return (
-    (booking.status === 'confirmed' || booking.status === 'meeting_started') &&
+    (booking.status === 'confirmed' || booking.status === 'payment_held' || booking.status === 'meeting_started') &&
     !!booking.bookingDate &&
     !!booking.endTime &&
     isBookingPastEndTime(booking.bookingDate, booking.endTime)
@@ -60,9 +60,10 @@ export const sortBookingsByPriority = (bookings: Booking[]): Booking[] => {
     const aDate = new Date(a.bookingDate);
     const bDate = new Date(b.bookingDate);
     
-    // Priority order: confirmed upcoming, pending, completed, cancelled
+    // Priority order: confirmed/payment_held upcoming, pending, completed, cancelled
     const statusPriority: Record<string, number> = {
       confirmed: 1,
+      payment_held: 1, // Same priority as confirmed
       pending: 2,
       completed: 3,
       cancelled: 4,
@@ -80,7 +81,7 @@ export const sortBookingsByPriority = (bookings: Booking[]): Booking[] => {
     // Within same status, sort by date
     // Upcoming bookings: ascending (soonest first)
     // Past bookings (completed/cancelled): descending (most recent first)
-    if (a.status === 'confirmed' || a.status === 'pending') {
+    if (a.status === 'confirmed' || a.status === 'payment_held' || a.status === 'pending') {
       // For upcoming: soonest first
       return aDate.getTime() - bDate.getTime();
     } else {

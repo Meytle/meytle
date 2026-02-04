@@ -109,7 +109,7 @@ export interface Booking {
   endTime: string;
   durationHours: number;
   totalAmount: number;
-  status: 'pending' | 'confirmed' | 'meeting_started' | 'cancelled' | 'completed' | 'no_show';
+  status: 'pending' | 'payment_held' | 'confirmed' | 'meeting_started' | 'cancelled' | 'completed' | 'no_show';
   specialRequests?: string;
   meetingLocation?: string;
   meetingType?: string;

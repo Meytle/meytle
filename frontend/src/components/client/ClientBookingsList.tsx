@@ -46,6 +46,7 @@ const ClientBookingsList: React.FC<ClientBookingsListProps> = ({
     switch (status) {
       case 'pending':
         return <FaClock className="text-yellow-500" />;
+      case 'payment_held':
       case 'confirmed':
         return <FaCheckCircle className="text-green-500" />;
       case 'completed':
@@ -63,6 +64,7 @@ const ClientBookingsList: React.FC<ClientBookingsListProps> = ({
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'payment_held':
       case 'confirmed':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'completed':
@@ -188,7 +190,7 @@ const ClientBookingsList: React.FC<ClientBookingsListProps> = ({
     const bookingDate = new Date(booking.bookingDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return bookingDate >= today && ['pending', 'confirmed'].includes(booking.status);
+    return bookingDate >= today && ['pending', 'payment_held', 'confirmed'].includes(booking.status);
   };
 
   const isPast = (booking: Booking) => {
@@ -297,11 +299,11 @@ const ClientBookingsList: React.FC<ClientBookingsListProps> = ({
                     <div className="flex flex-col items-end gap-3">
                       <span className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border ${getStatusColor(booking.status)}`}>
                         {getStatusIcon(booking.status)}
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        {booking.status === 'payment_held' ? 'Confirmed' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                       </span>
 
                       <div className="flex gap-2">
-                        {['pending', 'confirmed'].includes(booking.status) && (
+                        {['pending', 'payment_held', 'confirmed'].includes(booking.status) && (
                           <button
                             onClick={() => openCancelModal(booking)}
                             disabled={cancellingBookingId === booking.id}
@@ -372,7 +374,7 @@ const ClientBookingsList: React.FC<ClientBookingsListProps> = ({
                     <div className="flex flex-col items-end gap-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(booking.status)}`}>
                         {getStatusIcon(booking.status)}
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        {booking.status === 'payment_held' ? 'Confirmed' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                       </span>
 
                       <div className="flex gap-2">

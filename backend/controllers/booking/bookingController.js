@@ -388,7 +388,7 @@ const createBooking = asyncHandler(async (req, res) => {
       `SELECT id FROM bookings
        WHERE companion_id = ? AND booking_date = ?
        AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))
-       AND status IN ('pending', 'confirmed')`,
+       AND status IN ('pending', 'payment_held', 'confirmed')`,
       [companionId, bookingDate, startTime, startTime, endTime, endTime]
     );
 
@@ -1053,7 +1053,7 @@ const approveBooking = asyncHandler(async (req, res) => {
       `SELECT id FROM bookings
        WHERE companion_id = ? AND booking_date = ?
        AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))
-       AND status = 'confirmed' AND id != ?`,
+       AND (status = 'confirmed' OR status = 'payment_held') AND id != ?`,
       [companionId, booking.booking_date, booking.start_time, booking.start_time,
        booking.end_time, booking.end_time, bookingId]
     );
@@ -1158,27 +1158,87 @@ const approveBooking = asyncHandler(async (req, res) => {
     );
 
     for (const conflict of conflictingBookings) {
+      // Cancel Stripe payment authorization for conflicting booking
+      try {
+        const [conflictPayment] = await pool.execute(
+          'SELECT payment_intent_id FROM bookings WHERE id = ?',
+          [conflict.id]
+        );
+        if (conflictPayment[0]?.payment_intent_id) {
+          await stripeService.cancelAuthorization(conflict.id);
+        }
+      } catch (stripeErr) {
+        logger.controllerError('bookingController', 'approveBooking', stripeErr, req);
+      }
+
       await pool.execute(
-        `UPDATE bookings 
-         SET status = 'cancelled', 
+        `UPDATE bookings
+         SET status = 'cancelled',
+             payment_status = 'refunded',
              cancelled_by = 'companion',
              cancellation_reason = 'Time slot accepted for another booking',
              cancelled_at = NOW()
          WHERE id = ?`,
         [conflict.id]
       );
-      
+
       try {
         await createNotification(
           conflict.client_id,
           'booking',
           'Booking Automatically Cancelled',
-          `Your booking was cancelled because the companion accepted another booking for this time slot.`,
+          `Your booking was cancelled because the companion accepted another booking for this time slot. Your payment has been refunded.`,
           '/client-dashboard'
         );
       } catch (notificationError) {
         logger.controllerError('bookingController', 'approveBooking', notificationError, req);
       }
+    }
+
+    // Auto-reject conflicting pending custom requests
+    try {
+      const [conflictingRequests] = await pool.execute(
+        `SELECT id, client_id, payment_intent_id
+         FROM booking_requests
+         WHERE companion_id = ? AND status = 'pending'
+           AND requested_date = ?
+           AND start_time IS NOT NULL AND end_time IS NOT NULL
+           AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))`,
+        [companionId, booking.booking_date, booking.start_time, booking.start_time,
+         booking.end_time, booking.end_time]
+      );
+
+      for (const conflicting of conflictingRequests) {
+        if (conflicting.payment_intent_id) {
+          try {
+            const pi = await stripeService.retrievePaymentIntent(conflicting.payment_intent_id);
+            if (pi.status === 'requires_capture') {
+              await stripeService.cancelPaymentIntent(conflicting.payment_intent_id);
+            }
+          } catch (stripeErr) {
+            logger.controllerError('bookingController', 'approveBooking-autoReject', stripeErr, req);
+          }
+        }
+
+        await pool.execute(
+          `UPDATE booking_requests
+           SET status = 'rejected',
+               companion_response = 'Auto-rejected: time slot is no longer available',
+               responded_at = NOW()
+           WHERE id = ?`,
+          [conflicting.id]
+        );
+
+        await createNotification(
+          conflicting.client_id,
+          'booking',
+          'Booking Request Unavailable',
+          `Your custom request for ${booking.booking_date} was declined because the time slot is no longer available. Your payment has been refunded.`,
+          '/client-dashboard'
+        );
+      }
+    } catch (autoRejectError) {
+      logger.controllerError('bookingController', 'approveBooking-autoReject', autoRejectError, req);
     }
 
     // Emit real-time update to both client and companion
@@ -1254,14 +1314,14 @@ const rejectBooking = asyncHandler(async (req, res) => {
     return sendBadRequest(res, 'Booking is already ' + booking.status);
   }
 
-  // Handle payment cancellation if booking was confirmed with payment
-  if (booking.status === 'confirmed' && booking.payment_intent_id) {
+  // Handle payment cancellation if booking was confirmed/payment_held with payment
+  if ((booking.status === 'confirmed' || booking.status === 'payment_held') && booking.payment_intent_id) {
     try {
       // Cancel payment authorization - full refund, no penalties
       await stripeService.cancelAuthorization(bookingId);
 
-      logger.controllerInfo('bookingController', 'rejectBooking', 
-        'Confirmed booking cancelled - full refund, no penalties', 
+      logger.controllerInfo('bookingController', 'rejectBooking',
+        'Confirmed booking cancelled - full refund, no penalties',
         { bookingId });
 
     } catch (paymentError) {

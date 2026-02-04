@@ -1068,12 +1068,12 @@ const CompanionDashboard = () => {
                         <div className="flex flex-col items-end gap-1">
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             booking.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                            booking.status === 'confirmed' || booking.status === 'payment_held' ? 'bg-blue-100 text-blue-700' :
                             booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                             booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            {booking.status === 'payment_held' ? 'Confirmed' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                           </span>
                           <span className="text-sm font-bold text-gray-900">${booking.totalAmount}</span>
                         </div>

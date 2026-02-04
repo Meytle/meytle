@@ -85,6 +85,7 @@ const BookingsTab = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
+      case 'payment_held':
       case 'confirmed': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
@@ -265,7 +266,7 @@ const BookingsTab = () => {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(booking.status)}`}>
-                          {booking.status}
+                          {booking.status === 'payment_held' ? 'Confirmed' : booking.status}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -394,7 +395,7 @@ const BookingsTab = () => {
                 <div>
                   <h3 className="font-semibold text-gray-700">Status</h3>
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(selectedBooking.status)}`}>
-                    {selectedBooking.status}
+                    {selectedBooking.status === 'payment_held' ? 'Confirmed' : selectedBooking.status}
                   </span>
                 </div>
                 <div>
