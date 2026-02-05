@@ -29,6 +29,7 @@ import { getTimezoneDisplayName } from '../../utils/timezoneHelpers';
 import type { ServiceCategory, AvailabilitySlot } from '../../types';
 import type { ValidatedAddress } from '../../services/addressValidation';
 import logger from '../../utils/logger';
+import { checkLocationDistance } from '../../utils/distanceHelper';
 
 interface DetailedBookingModalProps {
   isOpen: boolean;
@@ -43,6 +44,8 @@ interface DetailedBookingModalProps {
   };
   companionServices?: string[];
   hourlyRate?: number;
+  companionLat?: number | null;
+  companionLon?: number | null;
   onBookingCreated?: (bookingId: number) => void;
 }
 
@@ -70,6 +73,8 @@ const DetailedBookingModal: React.FC<DetailedBookingModalProps> = ({
   selectedTimeSlot,
   companionServices = [],
   hourlyRate = 75,
+  companionLat,
+  companionLon,
   onBookingCreated
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -103,6 +108,16 @@ const DetailedBookingModal: React.FC<DetailedBookingModalProps> = ({
     placeDetails: undefined,
     specialRequests: ''
   });
+
+  // Distance warning state
+  const [distanceWarning, setDistanceWarning] = useState<{
+    distance: number | null;
+    isFar: boolean;
+    message: string;
+  } | null>(null);
+
+  // Alternate time slots state (shown when booking fails)
+  const [alternateSlots, setAlternateSlots] = useState<{ start: string; end: string }[] | null>(null);
 
   // Get available services based on selected time slot
   const getAvailableServices = () => {
@@ -334,16 +349,26 @@ const DetailedBookingModal: React.FC<DetailedBookingModalProps> = ({
     } catch (error: any) {
       console.error('Error creating booking:', error);
 
-      // Extract error details
-      const errorMessage = error.response?.data?.errors?.join(', ') ||
-                          error.response?.data?.message ||
-                          error.message ||
-                          'Failed to create booking';
+      // Check if error contains alternate time slots
+      const responseData = error.response?.data;
+      if (responseData?.data?.availableSlots && responseData.data.availableSlots.length > 0) {
+        // Store alternate slots for display
+        setAlternateSlots(responseData.data.availableSlots);
+        toast.error('That time is unavailable. See available times below.', {
+          id: `booking-error-${Date.now()}`
+        });
+      } else {
+        // Extract error details
+        const errorMessage = responseData?.errors?.join(', ') ||
+                            responseData?.message ||
+                            error.message ||
+                            'Failed to create booking';
 
-      // Use a unique toast ID to prevent duplicate error toasts
-      toast.error(errorMessage, {
-        id: `booking-error-${Date.now()}`
-      });
+        // Use a unique toast ID to prevent duplicate error toasts
+        toast.error(errorMessage, {
+          id: `booking-error-${Date.now()}`
+        });
+      }
 
       // Don't close modal on error - let user fix issues
     } finally {
@@ -563,6 +588,18 @@ const DetailedBookingModal: React.FC<DetailedBookingModalProps> = ({
                             placeDetails: placeDetails,
                             validatedAddress: validatedAddress
                           }));
+                          // Check distance from companion's area
+                          if (validatedAddress?.lat && validatedAddress?.lon) {
+                            const result = checkLocationDistance(
+                              companionLat,
+                              companionLon,
+                              validatedAddress.lat,
+                              validatedAddress.lon
+                            );
+                            setDistanceWarning(result);
+                          } else {
+                            setDistanceWarning(null);
+                          }
                         }}
                         label="Where would you like to meet?"
                         placeholder="Search for a location..."
@@ -570,6 +607,22 @@ const DetailedBookingModal: React.FC<DetailedBookingModalProps> = ({
                         showMap={true}
                         className="mb-4"
                       />
+
+                      {/* Distance Warning/Success */}
+                      {distanceWarning && bookingData.validatedAddress && (
+                        <div className={`p-3 rounded-lg flex items-center gap-2 ${
+                          distanceWarning.isFar
+                            ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                            : 'bg-green-50 border border-green-200 text-green-800'
+                        }`}>
+                          {distanceWarning.isFar ? (
+                            <FaExclamationCircle className="text-amber-500 flex-shrink-0" />
+                          ) : (
+                            <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                          )}
+                          <span className="text-sm">{distanceWarning.message}</span>
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
@@ -661,6 +714,37 @@ const DetailedBookingModal: React.FC<DetailedBookingModalProps> = ({
                           </div>
                         </div>
                       </div>
+
+                      {/* Alternate Time Slots (shown when booking fails) */}
+                      {alternateSlots && alternateSlots.length > 0 && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                          <h4 className="text-amber-800 font-semibold mb-3 flex items-center gap-2">
+                            <FaExclamationCircle className="text-amber-500" />
+                            Available Times for This Day
+                          </h4>
+                          <p className="text-sm text-amber-700 mb-3">
+                            Select an available time slot:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {alternateSlots.map((slot, index) => (
+                              <button
+                                key={index}
+                                onClick={() => {
+                                  setBookingData(prev => ({
+                                    ...prev,
+                                    selectedTime: { start: slot.start, end: slot.end }
+                                  }));
+                                  setAlternateSlots(null);
+                                  toast.success('Time updated! Click Confirm to proceed.');
+                                }}
+                                className="px-4 py-2 bg-white border border-amber-300 text-amber-800 rounded-lg hover:bg-amber-100 transition-colors text-sm font-medium"
+                              >
+                                {formatTime(slot.start)} - {formatTime(slot.end)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </motion.div>
                   )}
                   </AnimatePresence>

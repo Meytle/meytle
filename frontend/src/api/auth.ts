@@ -65,6 +65,16 @@ api.interceptors.response.use(
         window.dispatchEvent(new Event('auth-expired'));
       }
     }
+
+    // Handle email not verified errors (403 with EMAIL_NOT_VERIFIED code)
+    if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+      if (import.meta.env.DEV) {
+        console.log('📧 Email not verified - triggering verification modal');
+      }
+      // Dispatch event for AuthContext to show OTP modal
+      window.dispatchEvent(new Event('email-not-verified'));
+    }
+
     return Promise.reject(error);
   }
 );
@@ -190,11 +200,26 @@ export const authApi = {
   },
 
   /**
-   * Resend email verification
+   * Verify email with OTP code
+   */
+  async verifyOTP(otp: string): Promise<any> {
+    const response = await api.post('/auth/verify-email', { otp });
+    return response.data;
+  },
+
+  /**
+   * Resend email verification OTP
+   */
+  async resendVerification(): Promise<any> {
+    const response = await api.post('/auth/resend-verification');
+    return response.data;
+  },
+
+  /**
+   * @deprecated Use resendVerification instead
    */
   async resendVerificationEmail(): Promise<any> {
-    const response = await api.post('/auth/resend-verification');
-    return response;
+    return this.resendVerification();
   },
 
   /**

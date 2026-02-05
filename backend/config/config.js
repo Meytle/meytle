@@ -27,6 +27,16 @@ const getAllowedOrigins = () => {
     origins.push(process.env.FRONTEND_URL);
   }
 
+  // In development, allow common Vite dev server ports
+  if (isDevelopment) {
+    origins.push('http://localhost:5173');
+    origins.push('http://localhost:5174');
+    origins.push('http://localhost:5175');
+    origins.push('http://127.0.0.1:5173');
+    origins.push('http://127.0.0.1:5174');
+    origins.push('http://127.0.0.1:5175');
+  }
+
   // In production, also allow www/non-www variant as fallback
   if (isProduction && process.env.FRONTEND_URL) {
     try {

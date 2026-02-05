@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const config = require('../config/config');
-const { sendWelcomeVerificationEmail, generateVerificationToken } = require('../services/emailService');
+const { sendWelcomeVerificationEmail, generateVerificationToken, generateOTP, sendOTPEmail } = require('../services/emailService');
 const { transformToFrontend } = require('../utils/transformer');
 const logger = require('../services/logger');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -116,9 +116,9 @@ const signup = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Generate verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate 6-digit OTP verification code
+    const verificationToken = generateOTP();
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Use the first role as the primary role for backward compatibility
     const primaryRole = roleArray[0];
@@ -139,12 +139,12 @@ const signup = async (req, res) => {
       );
     }
 
-    // Send verification email
+    // Send OTP verification email
     try {
-      await sendWelcomeVerificationEmail(email, name, primaryRole, verificationToken);
-      logger.authInfo('verification_email_sent', userId, 'Verification email sent', { email });
+      await sendOTPEmail(email, name, verificationToken);
+      logger.authInfo('otp_email_sent', userId, 'OTP verification email sent', { email });
     } catch (emailError) {
-      logger.authError('verification_email_failed', emailError, userId);
+      logger.authError('otp_email_failed', emailError, userId);
       // Don't fail signup if email fails, but warn the user
     }
 
@@ -400,41 +400,85 @@ const getProfile = async (req, res) => {
  */
 const verifyEmail = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { otp, token } = req.body;
+    const otpCode = otp || token; // Support both 'otp' and legacy 'token' field
 
-    if (!token) {
+    if (!otpCode) {
       return res.status(400).json({
         status: 'error',
-        message: 'Verification token is required'
+        message: 'Verification code is required'
       });
     }
 
-    // Find user by verification token
-    const [users] = await pool.execute(
-      'SELECT id, name, email, role, email_verification_expires FROM users WHERE email_verification_token = ? AND email_verified = FALSE',
-      [token]
-    );
+    // Get user from authenticated request or find by OTP
+    let userId = req.user?.id;
+    let user;
 
-    if (users.length === 0) {
+    if (userId) {
+      // User is authenticated - verify their OTP
+      const [users] = await pool.execute(
+        'SELECT id, name, email, role, email_verification_token, email_verification_expires, otp_attempts FROM users WHERE id = ? AND email_verified = FALSE',
+        [userId]
+      );
+      if (users.length === 0) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'User not found or already verified'
+        });
+      }
+      user = users[0];
+    } else {
+      // Legacy flow - find user by OTP token
+      const [users] = await pool.execute(
+        'SELECT id, name, email, role, email_verification_token, email_verification_expires, otp_attempts FROM users WHERE email_verification_token = ? AND email_verified = FALSE',
+        [otpCode]
+      );
+      if (users.length === 0) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid verification code'
+        });
+      }
+      user = users[0];
+    }
+
+    // Check if too many wrong attempts (max 5)
+    const attempts = user.otp_attempts || 0;
+    if (attempts >= 5) {
       return res.status(400).json({
         status: 'error',
-        message: 'Invalid or expired verification token'
+        message: 'Too many wrong attempts. Please request a new code.',
+        requiresResend: true
       });
     }
 
-    const user = users[0];
+    // Check if OTP matches (for authenticated users)
+    if (userId && user.email_verification_token !== otpCode) {
+      // Increment attempt counter
+      await pool.execute(
+        'UPDATE users SET otp_attempts = COALESCE(otp_attempts, 0) + 1 WHERE id = ?',
+        [user.id]
+      );
+      const remainingAttempts = 4 - attempts;
+      return res.status(400).json({
+        status: 'error',
+        message: `Invalid verification code. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'Please request a new code.'}`,
+        remainingAttempts: Math.max(0, remainingAttempts)
+      });
+    }
 
-    // Check if token is expired
+    // Check if OTP is expired
     if (new Date() > new Date(user.email_verification_expires)) {
       return res.status(400).json({
         status: 'error',
-        message: 'Verification token has expired'
+        message: 'Verification code has expired. Please request a new one.',
+        expired: true
       });
     }
 
-    // Update user as verified
+    // Update user as verified and reset attempts
     await pool.execute(
-      'UPDATE users SET email_verified = TRUE, email_verification_token = NULL, email_verification_expires = NULL WHERE id = ?',
+      'UPDATE users SET email_verified = TRUE, email_verification_token = NULL, email_verification_expires = NULL, otp_attempts = 0 WHERE id = ?',
       [user.id]
     );
 
@@ -547,22 +591,22 @@ const resendVerification = async (req, res) => {
       });
     }
 
-    // Generate new verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate new 6-digit OTP
+    const verificationToken = generateOTP();
+    const verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Update user with new token
+    // Update user with new OTP and reset attempts
     await pool.execute(
-      'UPDATE users SET email_verification_token = ?, email_verification_expires = ? WHERE id = ?',
+      'UPDATE users SET email_verification_token = ?, email_verification_expires = ?, otp_attempts = 0 WHERE id = ?',
       [verificationToken, verificationExpires, userId]
     );
 
-    // Send combined welcome + verification email
+    // Send OTP verification email
     try {
-      await sendWelcomeVerificationEmail(user.email, user.name, user.role, verificationToken);
-      logger.authInfo('verification_email_resent', userId, 'Welcome + Verification email resent', { email: user.email });
+      await sendOTPEmail(user.email, user.name, verificationToken);
+      logger.authInfo('otp_email_resent', userId, 'OTP verification email resent', { email: user.email });
     } catch (emailError) {
-      logger.authError('verification_email_failed', emailError, userId);
+      logger.authError('otp_email_failed', emailError, userId);
       return res.status(500).json({
         status: 'error',
         message: 'Failed to send verification email'

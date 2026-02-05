@@ -224,7 +224,7 @@ const initializeDatabase = async () => {
       }
 
       const [[{ idx_token }]] = await promisePool.query(
-        `SELECT COUNT(*) AS idx_token FROM information_schema.STATISTICS 
+        `SELECT COUNT(*) AS idx_token FROM information_schema.STATISTICS
          WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND INDEX_NAME = 'idx_verification_token'`,
         [dbName]
       );
@@ -232,6 +232,19 @@ const initializeDatabase = async () => {
         await promisePool.query(
           `ALTER TABLE users ADD INDEX idx_verification_token (email_verification_token)`
         );
+      }
+
+      // Add otp_attempts column for tracking failed OTP verification attempts
+      const [[{ otp_col }]] = await promisePool.query(
+        `SELECT COUNT(*) AS otp_col FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'users' AND COLUMN_NAME = 'otp_attempts'`,
+        [dbName]
+      );
+      if (Number(otp_col) === 0) {
+        await promisePool.query(
+          `ALTER TABLE users ADD COLUMN otp_attempts INT DEFAULT 0`
+        );
+        dbLog.info('initializeDatabase', 'Added otp_attempts column to users', {});
       }
     } catch (migrationError) {
       logger.dbError('initializeDatabase', migrationError, null, { migration: 'users_table' });

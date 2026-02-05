@@ -371,6 +371,8 @@ const getApprovedCompanions = async (req, res) => {
         ca.city,
         ca.state,
         ca.country,
+        ca.address_lat,
+        ca.address_lon,
         ca.created_at as joined_date,
         ca.services_offered,
         ca.languages,

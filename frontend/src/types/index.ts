@@ -98,6 +98,8 @@ export interface Companion {
   servicesOffered?: string[];
   languages?: string[];
   hourlyRate?: number;
+  addressLat?: number | null;
+  addressLon?: number | null;
 }
 
 export interface Booking {

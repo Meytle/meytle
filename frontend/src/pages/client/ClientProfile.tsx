@@ -1274,15 +1274,15 @@ const ClientProfile = () => {
                 <div className="rounded-lg p-4 border-l-4 border-[#312E81]">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
                     <FaCamera className="text-[#312E81]" />
-                    Step 2: Upload Profile Photo <span className="text-red-500">*</span>
+                    Step 2: Upload Selfie <span className="text-red-500">*</span>
                   </h3>
-                  <p className="text-xs text-gray-600 mb-4">Profile photo is required for profile completion. Photo uploads automatically when selected.</p>
+                  <p className="text-xs text-gray-600 mb-4">A clear selfie is required for profile completion. Photo uploads automatically when selected.</p>
                   
                   <div className="flex justify-center mb-4">
                     {/* Profile Photo Upload */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
-                        Profile Picture <span className="text-red-500">*</span>
+                        Selfie <span className="text-red-500">*</span>
                       </label>
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-[#4A47A3] to-[#4A47A3] flex items-center justify-center text-white text-xl font-bold shadow-lg">
@@ -1330,7 +1330,7 @@ const ClientProfile = () => {
                         </p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Government ID <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">ID Photo <span className="text-red-500">*</span></label>
                         <div className="flex items-center gap-3">
                           <button 
                             type="button" 

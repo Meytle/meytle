@@ -31,6 +31,12 @@ const ProtectedRoute = ({ children, requiredRole, allowMultipleRoles = false }: 
     return <Navigate to={ROUTES.SIGN_IN} state={{ from: location }} replace />;
   }
 
+  // Check if email is verified - redirect to verification page if not
+  if (!user.emailVerified) {
+    console.log('📧 Protected route: Email not verified, redirecting to verify-email');
+    return <Navigate to="/verify-email" replace />;
+  }
+
   // Check role requirements if specified
   if (requiredRole) {
     const hasRole = user.roles?.includes(requiredRole) || user.activeRole === requiredRole;

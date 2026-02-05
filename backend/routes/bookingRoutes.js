@@ -41,6 +41,7 @@ const {
 } = require('../controllers/booking');
 const { verifyOTP, getVerificationStatus, expireVerification, requestExtension } = require('../controllers/booking/otpVerificationController');
 const authMiddleware = require('../middleware/auth');
+const { requireEmailVerified } = require('../middleware/auth');
 const { isCompanion, validateCompanionOwnership, companionRateLimit } = require('../middleware/companionAuth');
 
 const router = express.Router();
@@ -48,10 +49,10 @@ const router = express.Router();
 // All routes require authentication
 router.use(authMiddleware);
 
-// Booking management
-router.post('/create', createBooking); // OLD - will be deprecated
-router.post('/create-payment-intent', createPaymentIntent); // NEW - Step 1: Create payment intent only
-router.post('/create-with-payment', createBookingWithPayment); // NEW - Step 2: Create booking after payment auth
+// Booking management (requires verified email for creating bookings)
+router.post('/create', requireEmailVerified, createBooking); // OLD - will be deprecated
+router.post('/create-payment-intent', requireEmailVerified, createPaymentIntent); // NEW - Step 1: Create payment intent only
+router.post('/create-with-payment', requireEmailVerified, createBookingWithPayment); // NEW - Step 2: Create booking after payment auth
 router.get('/my-bookings', getBookings);
 
 // Availability management (companion only) - static routes first
@@ -76,10 +77,10 @@ router.get('/companion/:companionId/reviews', getCompanionReviews);
 router.get('/pending-reviews', getPendingReviews);
 router.get('/reviews/has-pending', hasPendingReviews);
 
-// Booking Request routes
-router.post('/requests/create', createBookingRequest); // OLD - will be deprecated
-router.post('/requests/create-payment-intent', createRequestPaymentIntent); // NEW - Step 1: Create payment intent only
-router.post('/requests/create-with-payment', createRequestWithPayment); // NEW - Step 2: Create request after payment auth
+// Booking Request routes (requires verified email for creating requests)
+router.post('/requests/create', requireEmailVerified, createBookingRequest); // OLD - will be deprecated
+router.post('/requests/create-payment-intent', requireEmailVerified, createRequestPaymentIntent); // NEW - Step 1: Create payment intent only
+router.post('/requests/create-with-payment', requireEmailVerified, createRequestWithPayment); // NEW - Step 2: Create request after payment auth
 router.get('/requests', getBookingRequests);
 router.get('/requests/:requestId', getBookingRequestById);
 router.post('/requests/:requestId/confirm-payment', confirmBookingRequestPayment); // OLD - for backwards compatibility

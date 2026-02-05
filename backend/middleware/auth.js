@@ -64,4 +64,81 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+// Optional auth middleware - doesn't fail if no token, but attaches user if present
+const optionalAuthMiddleware = (req, res, next) => {
+  try {
+    let token = null;
+
+    if (req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.substring(7);
+    }
+
+    if (token) {
+      const decoded = jwt.verify(token, config.jwt.secret);
+      req.user = {
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.activeRole || decoded.role,
+        activeRole: decoded.activeRole,
+        roles: decoded.roles || [decoded.role]
+      };
+    }
+    // Continue even without token
+    next();
+  } catch (error) {
+    // Token invalid/expired - continue without user
+    next();
+  }
+};
+
+// Middleware to require verified email for protected actions
+// Use AFTER authMiddleware
+const { pool } = require('../config/database');
+
+const requireEmailVerified = async (req, res, next) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
+
+    // Check email_verified status in database
+    const [rows] = await pool.query(
+      'SELECT email_verified FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    const emailVerified = rows[0].email_verified === 1;
+
+    if (!emailVerified) {
+      return res.status(403).json({
+        status: 'error',
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email address to continue.'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Email verification check error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Error checking email verification status'
+    });
+  }
+};
+
 module.exports = authMiddleware;
+module.exports.optionalAuthMiddleware = optionalAuthMiddleware;
+module.exports.requireEmailVerified = requireEmailVerified;

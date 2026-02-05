@@ -62,6 +62,8 @@ interface CompanionProfileData {
   location: string;
   averageRating?: number;
   reviewCount?: number;
+  addressLat?: number | null;
+  addressLon?: number | null;
 }
 
 const CompanionDetails = () => {
@@ -272,10 +274,12 @@ const CompanionDetails = () => {
           location: companionData.location || '',
           joinedDate: companionData.joinedDate || new Date().toISOString(),
           // Backend returns averageRating as a STRING, convert to number
-          averageRating: typeof companionData.averageRating === 'string' 
-            ? parseFloat(companionData.averageRating) 
+          averageRating: typeof companionData.averageRating === 'string'
+            ? parseFloat(companionData.averageRating)
             : (companionData.averageRating || 0),
-          reviewCount: companionData.reviewCount || 0
+          reviewCount: companionData.reviewCount || 0,
+          addressLat: companionData.addressLat || null,
+          addressLon: companionData.addressLon || null
         });
       } else {
         toast.error('Companion not found');
@@ -475,7 +479,7 @@ const CompanionDetails = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
         <div className="w-full">
           {/* Main Content - Full Width */}
           <div className="space-y-6">
@@ -724,7 +728,7 @@ const CompanionDetails = () => {
                 </div>
 
                 {/* Availability Tab - Keep mounted, hide with CSS to prevent remount */}
-                <div className={activeTab === 'availability' ? '' : 'hidden'}>
+                <div id="availability-section" className={activeTab === 'availability' ? '' : 'hidden'}>
                   <div className="space-y-6">
                     {/* Monthly Availability Section */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -994,6 +998,8 @@ const CompanionDetails = () => {
         companionId={companion?.id || 0}
         companionName={companion?.name || ''}
         companionServices={companion?.servicesOffered || []}
+        companionLat={companion?.addressLat}
+        companionLon={companion?.addressLon}
         onRequestCreated={(requestId) => {
           // Success toast is handled by the modal itself
           setShowRequestModal(false);
@@ -1012,6 +1018,8 @@ const CompanionDetails = () => {
           selectedTimeSlot={selectedTimeSlot}
           companionServices={companion?.servicesOffered || []}
           hourlyRate={companion?.hourlyRate || 75}
+          companionLat={companion?.addressLat}
+          companionLon={companion?.addressLon}
           onBookingCreated={(bookingId) => {
             // Success toast is handled by the modal itself
             // Navigate to booking confirmation or refresh data
@@ -1101,6 +1109,29 @@ const CompanionDetails = () => {
           {/* Instruction Text */}
           <div className="absolute bottom-8 right-8 text-white text-sm backdrop-blur-md bg-white/20 px-4 py-2 rounded-lg shadow-lg z-10">
             Press <kbd className="px-2 py-1 bg-white/10 rounded border border-white/20">ESC</kbd> to close • Use <kbd className="px-2 py-1 bg-white/10 rounded border border-white/20">←</kbd> <kbd className="px-2 py-1 bg-white/10 rounded border border-white/20">→</kbd> to navigate
+          </div>
+        </div>
+      )}
+
+      {/* Sticky Book Now Bottom Bar */}
+      {companion && !isImageFullscreen && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-[#312E81]">${companion.hourlyRate}</span>
+              <span className="text-gray-500 text-sm">/hr</span>
+            </div>
+            <button
+              onClick={() => {
+                setActiveTab('availability');
+                setTimeout(() => {
+                  document.getElementById('availability-section')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+              className="px-8 py-3 bg-gradient-to-r from-[#312E81] to-[#4A47A3] text-white font-semibold rounded-lg hover:from-[#1E1B4B] hover:to-[#312E81] transition-all shadow-lg hover:shadow-xl"
+            >
+              Book Now
+            </button>
           </div>
         </div>
       )}

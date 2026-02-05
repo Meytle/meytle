@@ -384,6 +384,74 @@ const generateVerificationToken = () => {
   return crypto.randomBytes(32).toString('hex');
 };
 
+// Generate 6-digit OTP code
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Send OTP verification email
+const sendOTPEmail = async (email, userName, otp) => {
+  try {
+    if (!shouldSendEmail('email_verification')) {
+      logger.apiInfo('emailService', 'sendOTPEmail', 'Email skipped due to priority mode', { email });
+      return { success: true, skipped: true, reason: 'priority_mode' };
+    }
+
+    const emailContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 480px; margin: 40px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #312E81, #4A47A3); padding: 32px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">Meytle</h1>
+    </div>
+    <div style="padding: 32px; text-align: center;">
+      <h2 style="color: #1f2937; margin: 0 0 16px 0; font-size: 20px;">Hi ${userName}!</h2>
+      <p style="color: #6b7280; margin: 0 0 24px 0; font-size: 14px;">
+        Enter this code to verify your email address:
+      </p>
+      <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 0 0 24px 0;">
+        <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #312E81;">${otp}</span>
+      </div>
+      <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+        This code expires in 10 minutes.<br>
+        If you didn't request this, please ignore this email.
+      </p>
+    </div>
+    <div style="background: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
+      <p style="color: #9ca3af; font-size: 11px; margin: 0;">
+        © ${new Date().getFullYear()} Meytle. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: `${otp} is your Meytle verification code`,
+      html: emailContent
+    });
+
+    logger.apiInfo('emailService', 'sendOTPEmail', 'OTP email sent successfully', {
+      email,
+      emailId: result.data?.id
+    });
+
+    return { success: true, emailId: result.data?.id };
+  } catch (error) {
+    logger.apiError('emailService', 'sendOTPEmail', error);
+    throw error;
+  }
+};
+
 // Send combined welcome and verification email
 const sendWelcomeVerificationEmail = async (email, userName, userRole, verificationToken) => {
   try {
@@ -1221,6 +1289,8 @@ module.exports = {
   sendBookingConfirmationEmail, // Client gets confirmation
   sendBookingCancellationEmail, // Client gets cancellation
   generateVerificationToken,
+  generateOTP, // 6-digit OTP generator
+  sendOTPEmail, // Send OTP via email
   shouldSendEmail, // Export for use in other services
   EMAIL_PRIORITIES, // Export priority configuration
 };

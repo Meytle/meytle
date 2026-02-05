@@ -19,7 +19,21 @@ const api = axios.create({
   withCredentials: true, // Always send cookies with requests
 });
 
-// No request interceptor needed - cookies are sent automatically
+// Response interceptor for automatic snake_case to camelCase transformation
+api.interceptors.response.use(
+  (response) => {
+    if (response.data) {
+      response.data = transformKeysSnakeToCamel(response.data);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response?.data) {
+      error.response.data = transformKeysSnakeToCamel(error.response.data);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export interface CompanionsResponse {
   status: string;

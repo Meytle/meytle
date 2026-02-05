@@ -30,6 +30,7 @@ import { useModalRegistration } from "../../context/ModalContext";
 import { convertToUTC } from "../../utils/timeConverter";
 import type { ServiceCategory } from "../../types";
 import type { ValidatedAddress } from "../../services/addressValidation";
+import { checkLocationDistance } from "../../utils/distanceHelper";
 
 // Time picker constants for 12-hour format with 30-minute intervals
 const HOURS = ['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
@@ -62,6 +63,8 @@ interface CustomBookingRequestModalProps {
   companionId: number;
   companionName: string;
   companionServices?: string[];
+  companionLat?: number | null;
+  companionLon?: number | null;
   onRequestCreated?: (requestId: number) => void;
 }
 
@@ -96,6 +99,8 @@ const CustomBookingRequestModal: React.FC<CustomBookingRequestModalProps> = ({
   companionId,
   companionName,
   companionServices = [],
+  companionLat,
+  companionLon,
   onRequestCreated,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -106,6 +111,13 @@ const CustomBookingRequestModal: React.FC<CustomBookingRequestModalProps> = ({
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+
+  // Distance warning state
+  const [distanceWarning, setDistanceWarning] = useState<{
+    distance: number | null;
+    isFar: boolean;
+    message: string;
+  } | null>(null);
   
   // ⭐ Payment state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -389,6 +401,18 @@ const CustomBookingRequestModal: React.FC<CustomBookingRequestModalProps> = ({
       meetingLocation: address,
       validatedAddress: validatedAddress,
     }));
+    // Check distance from companion's area
+    if (validatedAddress?.lat && validatedAddress?.lon) {
+      const result = checkLocationDistance(
+        companionLat,
+        companionLon,
+        validatedAddress.lat,
+        validatedAddress.lon
+      );
+      setDistanceWarning(result);
+    } else {
+      setDistanceWarning(null);
+    }
   };
 
   const renderCalendarDays = () => {
@@ -906,6 +930,22 @@ const CustomBookingRequestModal: React.FC<CustomBookingRequestModalProps> = ({
                               Enter a specific address or general area (e.g.,
                               "Downtown Coffee Shop")
                             </p>
+
+                            {/* Distance Warning/Success */}
+                            {distanceWarning && formData.validatedAddress && (
+                              <div className={`mt-3 p-3 rounded-lg flex items-center gap-2 ${
+                                distanceWarning.isFar
+                                  ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                                  : 'bg-green-50 border border-green-200 text-green-800'
+                              }`}>
+                                {distanceWarning.isFar ? (
+                                  <FaExclamationCircle className="text-amber-500 flex-shrink-0" />
+                                ) : (
+                                  <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                                )}
+                                <span className="text-sm">{distanceWarning.message}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.div>

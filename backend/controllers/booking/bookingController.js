@@ -158,7 +158,51 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
       dayOfWeek,
       availableSlots: availabilitySlots.map(s => ({ start: s.start_time, end: s.end_time }))
     });
-    return sendBadRequest(res, 'Companion is not available at the requested time. Please select a different time slot.');
+
+    // Get existing bookings for this date to filter out unavailable slots
+    const [existingBookings] = await pool.query(
+      `SELECT start_time, end_time FROM bookings
+       WHERE companion_id = ?
+       AND booking_date = ?
+       AND status NOT IN ('cancelled', 'declined', 'completed')`,
+      [companionId, bookingDate]
+    );
+
+    // Filter availability slots to exclude already-booked times
+    const alternateSlots = [];
+    for (const slot of availabilitySlots) {
+      let slotStart = slot.start_time;
+      const slotEnd = slot.end_time;
+
+      // Check if any booking overlaps with this slot
+      const slotBookings = existingBookings.filter(b =>
+        (b.start_time < slotEnd && b.end_time > slotStart)
+      ).sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+      if (slotBookings.length === 0) {
+        // No bookings in this slot, it's fully available
+        alternateSlots.push({ start: slotStart, end: slotEnd });
+      } else {
+        // Split the slot around existing bookings
+        for (const booking of slotBookings) {
+          // Gap before this booking
+          if (slotStart < booking.start_time) {
+            alternateSlots.push({ start: slotStart, end: booking.start_time });
+          }
+          // Move start past this booking
+          slotStart = booking.end_time;
+        }
+        // Gap after last booking
+        if (slotStart < slotEnd) {
+          alternateSlots.push({ start: slotStart, end: slotEnd });
+        }
+      }
+    }
+
+    return sendBadRequest(res, 'Companion is not available at the requested time. Please select a different time slot.', {
+      availableSlots: alternateSlots,
+      date: bookingDate
+    });
   }
 
   // Check 2: Check for time conflicts with existing bookings

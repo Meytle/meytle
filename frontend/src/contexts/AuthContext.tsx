@@ -22,6 +22,9 @@ interface AuthContextType {
   switchRole: (role: UserRole, options?: { skipNavigation?: boolean }) => Promise<void>;
   hasRole: (role: UserRole) => boolean;
   canAccessRole: (role: UserRole) => boolean;
+  // Email Verification
+  verifyOTP: (otp: string) => Promise<{ success: boolean; message?: string; requiresResend?: boolean }>;
+  resendOTP: () => Promise<{ success: boolean; message?: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -137,31 +140,43 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
+  // Listen for EMAIL_NOT_VERIFIED errors - redirect to verify-email page
+  useEffect(() => {
+    const handleEmailNotVerified = () => {
+      console.log('📧 Email not verified - redirecting to verification page');
+      navigate('/verify-email', { replace: true });
+    };
+
+    window.addEventListener('email-not-verified', handleEmailNotVerified);
+
+    return () => {
+      window.removeEventListener('email-not-verified', handleEmailNotVerified);
+    };
+  }, [navigate]);
+
   const signIn = async (credentials: SignInData) => {
     setIsLoading(true);
     try {
       const response = await authApi.signIn(credentials);
-      console.log('🔍 Sign-in response structure:', {
-        hasData: !!response.data,
-        hasUser: !!response.data?.user,
-        dataKeys: Object.keys(response.data || {}),
-        userKeys: Object.keys(response.data?.user || {})
-      });
       // AuthApi returns backend response, so response.data.user is correct
       const authenticatedUser = response.data.user;
+
+      // Normalize emailVerified field (backend may return email_verified or emailVerified)
+      authenticatedUser.emailVerified = !!((authenticatedUser as any).email_verified ?? authenticatedUser.emailVerified);
       setUser(authenticatedUser);
 
       toast.success(TOAST_MESSAGES.SIGN_IN_SUCCESS);
-      
+
+      // Check if email is verified - if not, redirect to verification page
+      if (!authenticatedUser.emailVerified) {
+        navigate('/verify-email', { replace: true });
+        return;
+      }
+
       // Redirect based on user's active role - ONLY on initial sign-in
       if (authenticatedUser.activeRole === 'admin') {
-        // Admin users go to admin dashboard
-        console.log('👑 Admin user - redirecting to admin dashboard');
         navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
       } else if (authenticatedUser.activeRole === 'companion') {
-        // Navigate directly to companion dashboard
-        // The dashboard will handle checking application status
-        console.log('👥 Companion user - redirecting to dashboard');
         navigate(ROUTES.COMPANION_DASHBOARD, { replace: true });
       } else {
         navigate(ROUTES.CLIENT_DASHBOARD, { replace: true });
@@ -178,64 +193,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signUp = async (userData: SignUpData) => {
     setIsLoading(true);
     try {
-      console.log('🚀 Starting sign-up process with data:', userData);
       const response = await authApi.signUp(userData);
-      console.log('✅ Sign-up API response:', response);
 
       // AuthApi returns backend response, so response.data.user is correct
       const newUser = response.data.user;
-      console.log('👤 New user data:', newUser);
 
       // Validate user object structure
       if (!newUser || !newUser.id || !newUser.activeRole) {
-        console.error('❌ Invalid user object structure:', newUser);
         throw new Error('Invalid user data received from server');
       }
 
-      // Auth data is already stored as cookies by the backend
-      // Just verify user data is accessible
-      const storedUser = authApi.getCurrentUser();
-      const isAuthenticated = authApi.isAuthenticated();
-
-      if (!storedUser || !isAuthenticated) {
-        console.error('❌ Auth data not accessible after signup!');
-        throw new Error('Failed to access authentication data');
-      }
-
-      console.log('✅ Auth verified:', {
-        userId: newUser.id,
-        role: newUser.activeRole,
-        isAuthenticated: isAuthenticated
-      });
-
-      // Set user in state and mark as initialized
+      // Set user state (email not yet verified)
+      newUser.emailVerified = false;
       setUser(newUser);
       setIsInitialized(true);
 
-      // Show success message
-      toast.success(TOAST_MESSAGES.SIGN_UP_SUCCESS);
+      // Redirect to email verification page
+      navigate('/verify-email', { replace: true });
 
-      console.log('✅ Auth verified, navigating based on role:', newUser.activeRole);
-      
-      // Redirect based on user's active role
-      if (newUser.activeRole === 'admin') {
-        console.log('👑 Redirecting admin to admin dashboard');
-        navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
-      } else if (newUser.activeRole === 'companion') {
-        console.log('🔄 Redirecting companion to application page');
-        navigate(ROUTES.COMPANION_APPLICATION, { replace: true });
-      } else {
-        console.log('👤 Redirecting client to client dashboard');
-        navigate(ROUTES.CLIENT_DASHBOARD, { replace: true });
-      }
     } catch (error: any) {
-      console.error('❌ Sign-up error details:', {
-        error,
-        response: error.response,
-        data: error.response?.data,
-        status: error.response?.status,
-        message: error.response?.data?.message
-      });
       const errorMessage = error.response?.data?.message || TOAST_MESSAGES.SIGN_UP_ERROR;
       toast.error(errorMessage);
       throw error;
@@ -247,10 +223,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = async () => {
     await authApi.signOut();
     setUser(null);
-    
+
     // Clear cached profile photo from localStorage to prevent showing it to next user
     localStorage.removeItem('profilePicture');
-    
+
     toast.success(TOAST_MESSAGES.SIGN_OUT_SUCCESS);
     navigate(ROUTES.HOME);
   };
@@ -293,6 +269,51 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // OTP Verification - called from /verify-email page
+  const verifyOTP = async (otp: string): Promise<{ success: boolean; message?: string; requiresResend?: boolean }> => {
+    try {
+      const response = await authApi.verifyOTP(otp);
+
+      if (response.status === 'success') {
+        // Update user as verified
+        const verifiedUser = response.data?.user || { ...user, emailVerified: true };
+        setUser(verifiedUser);
+
+        toast.success('Email verified successfully!');
+
+        // Navigate based on role
+        const activeRole = verifiedUser.activeRole || user?.activeRole;
+        if (activeRole === 'admin') {
+          navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+        } else if (activeRole === 'companion') {
+          navigate(ROUTES.COMPANION_APPLICATION, { replace: true });
+        } else {
+          navigate(ROUTES.CLIENT_DASHBOARD, { replace: true });
+        }
+
+        return { success: true };
+      }
+
+      return { success: false, message: response.message || 'Verification failed' };
+    } catch (error: any) {
+      const response = error.response?.data;
+      return {
+        success: false,
+        message: response?.message || 'Verification failed',
+        requiresResend: response?.requiresResend
+      };
+    }
+  };
+
+  const resendOTP = async (): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const response = await authApi.resendVerification();
+      return { success: response.status === 'success', message: response.message };
+    } catch (error: any) {
+      return { success: false, message: error.response?.data?.message || 'Failed to resend code' };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -307,6 +328,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         switchRole,
         hasRole,
         canAccessRole,
+        // Email Verification
+        verifyOTP,
+        resendOTP,
       }}
     >
       {children}
