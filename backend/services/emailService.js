@@ -433,8 +433,9 @@ const sendOTPEmail = async (email, userName, otp) => {
 </html>
 `;
 
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@meytle.com';
     const result = await resend.emails.send({
-      from: EMAIL_FROM,
+      from: fromEmail,
       to: email,
       subject: `${otp} is your Meytle verification code`,
       html: emailContent
